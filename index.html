@@ -383,6 +383,22 @@
           <input type="password" id="google-key" class="setup-input" placeholder="AIza..." autocomplete="off" />
         </div>
       </div>
+
+      <div class="input-group">
+        <label>Corporate/Custom API (OpenAI Compatible) <span class="badge" style="background:rgba(71,85,105,0.4); border-color:#64748b; color:#cbd5e1;">Enterprise</span></label>
+        <div class="input-wrapper" style="margin-bottom: 8px;">
+          <i data-lucide="link"></i>
+          <input type="text" id="custom-url" class="setup-input" placeholder="https://.../v1/chat/completions" autocomplete="off" />
+        </div>
+        <div class="input-wrapper" style="margin-bottom: 8px;">
+          <i data-lucide="cpu"></i>
+          <input type="text" id="custom-model" class="setup-input" placeholder="Model name (e.g. gpt-4)" autocomplete="off" />
+        </div>
+        <div class="input-wrapper">
+          <i data-lucide="key"></i>
+          <input type="password" id="custom-key" class="setup-input" placeholder="Token (optional)" autocomplete="off" />
+        </div>
+      </div>
       
       <button class="btn-primary" onclick="startApp()">
         <span>Start Learning</span>
@@ -490,6 +506,7 @@ Rules:
 - Be warm, encouraging, and celebrate effort`;
 
     let groqKey = '', googleKey = '', openrouterKey = '';
+    let customUrl = '', customModel = '', customKey = '';
     let messages = [];
     let isLoading = false, isRecording = false;
     let recognition = null;
@@ -522,10 +539,16 @@ Rules:
       const sg = localStorage.getItem('ianinha_groq');
       const sk = localStorage.getItem('ianinha_google');
       const so = localStorage.getItem('ianinha_openrouter');
+      const cu = localStorage.getItem('ianinha_custom_url');
+      const cm = localStorage.getItem('ianinha_custom_model');
+      const ck = localStorage.getItem('ianinha_custom_key');
       
       if (sg) document.getElementById('groq-key').value = sg;
       if (sk) document.getElementById('google-key').value = sk;
       if (so) document.getElementById('openrouter-key').value = so;
+      if (cu) document.getElementById('custom-url').value = cu;
+      if (cm) document.getElementById('custom-model').value = cm;
+      if (ck) document.getElementById('custom-key').value = ck;
       buildTopics();
     };
 
@@ -533,19 +556,26 @@ Rules:
       groqKey = document.getElementById('groq-key').value.trim();
       googleKey = document.getElementById('google-key').value.trim();
       openrouterKey = document.getElementById('openrouter-key').value.trim();
+      customUrl = document.getElementById('custom-url').value.trim();
+      customModel = document.getElementById('custom-model').value.trim();
+      customKey = document.getElementById('custom-key').value.trim();
       
-      if (!groqKey && !googleKey && !openrouterKey) {
-        showToast('Please provide at least one API key to continue.');
+      if (!groqKey && !googleKey && !openrouterKey && !customUrl) {
+        showToast('Please provide at least one API key or Custom URL to continue.');
         return;
       }
       
       localStorage.setItem('ianinha_groq', groqKey);
       localStorage.setItem('ianinha_google', googleKey);
       localStorage.setItem('ianinha_openrouter', openrouterKey);
+      localStorage.setItem('ianinha_custom_url', customUrl);
+      localStorage.setItem('ianinha_custom_model', customModel);
+      localStorage.setItem('ianinha_custom_key', customKey);
       
-      if (openrouterKey) activeProvider = 'OpenRouter';
-      if (googleKey) activeProvider = 'Google';
-      if (groqKey) activeProvider = 'Groq';
+      if (customUrl) activeProvider = 'Custom API';
+      else if (openrouterKey) activeProvider = 'OpenRouter';
+      else if (googleKey) activeProvider = 'Google';
+      else if (groqKey) activeProvider = 'Groq';
       
       document.getElementById('provider-name').textContent = activeProvider;
       
@@ -637,6 +667,18 @@ Rules:
 
     async function callAI(history) {
       let errors = [];
+      
+      if (customUrl) {
+        try {
+          activeProvider = 'Corporate API';
+          document.getElementById('provider-name').textContent = activeProvider;
+          return await callCustom(history);
+        } catch(e) {
+          console.warn('Custom API failed:', e);
+          errors.push("Corporate API: " + e.message);
+        }
+      }
+
       if (groqKey) {
         try {
           activeProvider = 'Groq';
@@ -669,6 +711,25 @@ Rules:
       }
       if (errors.length === 0) errors.push("No APIs configured.");
       throw new Error(errors.join(" | "));
+    }
+
+    async function callCustom(history) {
+      const cleanHistory = history.map(m => ({ role: m.role, content: m.content }));
+      const headers = { 'Content-Type': 'application/json' };
+      if (customKey) headers['Authorization'] = `Bearer ${customKey}`;
+      
+      const res = await fetch(customUrl, {
+        method:'POST',
+        headers: headers,
+        body: JSON.stringify({ 
+          model: customModel || 'gpt-3.5-turbo', 
+          messages: [{ role:'system', content:SYSTEM_PROMPT }, ...cleanHistory],
+          temperature: 0.7 
+        })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const d = await res.json();
+      return d.choices[0].message.content;
     }
 
     async function callGroq(history) {
