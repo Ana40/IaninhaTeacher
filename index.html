@@ -599,7 +599,7 @@ Rules:
         speak(stripTip(reply));
       } catch (e) {
         console.error('Error in startChat:', e);
-        showToast('Unexpected error communicating with AI.');
+        showToast(e.message || 'Unexpected error communicating with AI.');
       } finally {
         hideTyping();
         isLoading = false;
@@ -634,7 +634,7 @@ Rules:
         speak(stripTip(reply));
       } catch (e) {
         console.error('Error in sendMessage:', e);
-        showToast('Unexpected error communicating with AI.');
+        showToast(e.message || 'Unexpected error communicating with AI.');
       } finally {
         hideTyping();
         isLoading = false;
@@ -643,6 +643,8 @@ Rules:
     }
 
     async function callAI(history) {
+      let lastError = "No APIs configured or valid.";
+
       // 1. Try Groq
       if (groqKey) {
         try {
@@ -651,33 +653,37 @@ Rules:
           return await callGroq(history);
         } catch(e) {
           console.warn('Groq failed:', e);
+          lastError = "Groq error: " + e.message;
         }
       }
       
       // 2. Try OpenRouter Fallback
       if (openrouterKey) {
         try {
-          activeProvider = 'OpenRouter (fallback)';
+          activeProvider = 'OpenRouter';
+          if (groqKey) activeProvider += ' (fallback)';
           document.getElementById('provider-name').textContent = activeProvider;
           return await callOpenRouter(history);
         } catch(e) {
           console.warn('OpenRouter failed:', e);
+          lastError = "OpenRouter error: " + e.message;
         }
       }
       
       // 3. Try Google Fallback
       if (googleKey) {
         try {
-          activeProvider = 'Google (fallback)';
+          activeProvider = 'Google';
+          if (groqKey || openrouterKey) activeProvider += ' (fallback)';
           document.getElementById('provider-name').textContent = activeProvider;
           return await callGoogle(history);
         } catch(e) {
           console.warn('Google failed:', e);
+          lastError = "Google error: " + e.message;
         }
       }
       
-      showToast('All configured APIs failed. Check your keys or connection.');
-      throw new Error("All APIs failed");
+      throw new Error(lastError);
     }
 
     async function callGroq(history) {
