@@ -527,16 +527,21 @@ Rules:
       showTyping();
       isLoading = true;
       
-      const reply = await callAI(messages);
-      
-      hideTyping();
-      isLoading = false;
-      
-      messages.push({ role:'assistant', content:reply });
-      appendMessage('assistant', reply);
-      setStatus('Ready to practice');
-      
-      speak(stripTip(reply));
+      try {
+        const reply = await callAI(messages);
+        
+        messages.push({ role:'assistant', content:reply });
+        appendMessage('assistant', reply);
+        
+        speak(stripTip(reply));
+      } catch (e) {
+        console.error('Error in startChat:', e);
+        showToast('Unexpected error communicating with AI.');
+      } finally {
+        hideTyping();
+        isLoading = false;
+        setStatus('Ready to practice');
+      }
     }
 
     async function sendMessage() {
@@ -557,16 +562,21 @@ Rules:
       
       const history = messages.filter(m => !m.hidden).map(m => ({ role:m.role, content:m.content }));
       
-      const reply = await callAI(history);
-      
-      hideTyping();
-      isLoading = false;
-      
-      messages.push({ role:'assistant', content:reply });
-      appendMessage('assistant', reply);
-      setStatus('Ready to practice');
-      
-      speak(stripTip(reply));
+      try {
+        const reply = await callAI(history);
+        
+        messages.push({ role:'assistant', content:reply });
+        appendMessage('assistant', reply);
+        
+        speak(stripTip(reply));
+      } catch (e) {
+        console.error('Error in sendMessage:', e);
+        showToast('Unexpected error communicating with AI.');
+      } finally {
+        hideTyping();
+        isLoading = false;
+        setStatus('Ready to practice');
+      }
     }
 
     async function callAI(history) {
@@ -578,7 +588,13 @@ Rules:
           if (googleKey) {
             activeProvider = 'Google (fallback)';
             document.getElementById('provider-name').textContent = activeProvider;
-            return await callGoogle(history);
+            try {
+              return await callGoogle(history);
+            } catch(e2) {
+              console.error('Google fallback failed', e2);
+              showToast('Both APIs failed. Check your keys.');
+              return "I'm having connection issues with both APIs. Check your keys.";
+            }
           } else {
              showToast('Groq API error. Check CORS or invalid key.');
              return "I'm having connection issues with the Groq API. Check your keys or network.";
