@@ -491,8 +491,10 @@ Rules:
 
     let groqKey = '', googleKey = '', openrouterKey = '';
     let messages = [];
-    let isLoading = false, isListening = false;
+    let isLoading = false, isRecording = false;
     let recognition = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
     let activeProvider = 'Groq';
 
     // Auto-resize textarea
@@ -525,11 +527,6 @@ Rules:
       if (sk) document.getElementById('google-key').value = sk;
       if (so) document.getElementById('openrouter-key').value = so;
       buildTopics();
-      
-      // Load voices
-      if(window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-      }
     };
 
     function startApp() {
@@ -592,10 +589,8 @@ Rules:
       
       try {
         const reply = await callAI(messages);
-        
         messages.push({ role:'assistant', content:reply });
         appendMessage('assistant', reply);
-        
         speak(stripTip(reply));
       } catch (e) {
         console.error('Error in startChat:', e);
@@ -627,10 +622,8 @@ Rules:
       
       try {
         const reply = await callAI(history);
-        
         messages.push({ role:'assistant', content:reply });
         appendMessage('assistant', reply);
-        
         speak(stripTip(reply));
       } catch (e) {
         console.error('Error in sendMessage:', e);
@@ -644,8 +637,6 @@ Rules:
 
     async function callAI(history) {
       let errors = [];
-
-      // 1. Try Groq
       if (groqKey) {
         try {
           activeProvider = 'Groq';
@@ -656,12 +647,9 @@ Rules:
           errors.push("Groq: " + e.message);
         }
       }
-      
-      // 2. Try OpenRouter Fallback
       if (openrouterKey) {
         try {
           activeProvider = 'OpenRouter';
-          if (groqKey) activeProvider += ' (fallback)';
           document.getElementById('provider-name').textContent = activeProvider;
           return await callOpenRouter(history);
         } catch(e) {
@@ -669,12 +657,9 @@ Rules:
           errors.push("OpenRouter: " + e.message);
         }
       }
-      
-      // 3. Try Google Fallback
       if (googleKey) {
         try {
           activeProvider = 'Google';
-          if (groqKey || openrouterKey) activeProvider += ' (fallback)';
           document.getElementById('provider-name').textContent = activeProvider;
           return await callGoogle(history);
         } catch(e) {
@@ -682,7 +667,6 @@ Rules:
           errors.push("Google: " + e.message);
         }
       }
-      
       if (errors.length === 0) errors.push("No APIs configured.");
       throw new Error(errors.join(" | "));
     }
@@ -692,7 +676,7 @@ Rules:
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
         body: JSON.stringify({ 
-          model:'openai/gpt-oss-120b', 
+          model:'llama-3.3-70b-versatile', 
           messages:[{ role:'system', content:SYSTEM_PROMPT }, ...history], 
           max_tokens:600, 
           temperature:0.7 
@@ -721,18 +705,14 @@ Rules:
       });
       if (!res.ok) throw new Error(`OpenRouter HTTP ${res.status}`);
       const d = await res.json();
-      if (!d.choices || d.choices.length === 0) throw new Error("Empty OpenRouter response");
       return d.choices[0].message.content;
     }
 
     async function callGoogle(history) {
-      // Gemini strict alternating roles workaround: Merge contiguous roles or handle gracefully.
-      // Basic mapping: user->user, assistant->model
       const contents = history.map(m => ({ 
         role: m.role === 'assistant' ? 'model' : 'user', 
         parts:[{ text: m.content }] 
       }));
-      
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleKey}`, {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
@@ -744,14 +724,12 @@ Rules:
       });
       if (!res.ok) throw new Error(`Google HTTP ${res.status}`);
       const d = await res.json();
-      if(!d.candidates || d.candidates.length === 0) throw new Error("Oops, no response from Gemini.");
       return d.candidates[0].content.parts[0].text;
     }
 
     function appendMessage(role, content) {
       const msgs = document.getElementById('messages');
       const isUser = role === 'user';
-      
       let mainText = content, tip = null;
       if (!isUser) {
         const m = content.match(/\[TIP:\s*(.*?)\]/s);
@@ -760,46 +738,36 @@ Rules:
           mainText = content.replace(/\[TIP:\s*.*?\]/s,'').trim();
         }
       }
-      
       const group = document.createElement('div');
       group.className = `msg-group ${isUser ? 'user' : 'ai'}`;
-      
       const av = document.createElement('div');
       av.className = 'msg-avatar';
       av.innerHTML = isUser ? '<i data-lucide="user"></i>' : '<i data-lucide="bot"></i>';
-      
       const col = document.createElement('div');
       col.className = 'msg-content';
-      
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
       bubble.textContent = mainText;
       col.appendChild(bubble);
-      
       if (tip) {
         const tipEl = document.createElement('div');
         tipEl.className = 'tip-box';
         tipEl.innerHTML = `<i data-lucide="lightbulb"></i><div class="tip-content">${tip}</div>`;
         col.appendChild(tipEl);
       }
-      
       if (!isUser) {
         const actionRow = document.createElement('div');
         actionRow.className = 'action-row';
-        
         const lb = document.createElement('button');
         lb.className = 'btn-small';
         lb.innerHTML = '<i data-lucide="volume-2"></i> Listen';
         lb.onclick = () => speak(mainText);
-        
         actionRow.appendChild(lb);
         col.appendChild(actionRow);
       }
-      
       group.appendChild(av);
       group.appendChild(col);
       msgs.appendChild(group);
-      
       lucide.createIcons();
       scrollToBottom();
     }
@@ -810,19 +778,8 @@ Rules:
       const group = document.createElement('div');
       group.className = 'msg-group ai';
       group.id = 'typing-indicator-wrapper';
-      
-      const av = document.createElement('div');
-      av.className = 'msg-avatar';
-      av.innerHTML = '<i data-lucide="bot"></i>';
-      
-      const dots = document.createElement('div');
-      dots.className = 'typing-indicator';
-      dots.innerHTML = '<span></span><span></span><span></span>';
-      
-      group.appendChild(av);
-      group.appendChild(dots);
+      group.innerHTML = `<div class="msg-avatar"><i data-lucide="bot"></i></div><div class="typing-indicator"><span></span><span></span><span></span></div>`;
       msgs.appendChild(group);
-      
       lucide.createIcons();
       typingEl = group;
       scrollToBottom();
@@ -837,97 +794,85 @@ Rules:
       msgs.scrollTop = msgs.scrollHeight;
     }
 
-    function speak(text) {
-      if (!text || !window.speechSynthesis) return;
-      const synth = window.speechSynthesis;
-      synth.cancel();
-      
+    async function speak(text) {
+      if (groqKey) {
+        try {
+          const response = await fetch('https://api.groq.com/openai/v1/audio/speech', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: "canopylabs/orpheus-v1-english", input: text, voice: "hannah", response_format: "wav" })
+          });
+          if (!response.ok) throw new Error('TTS failed');
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          audio.onplay = () => document.getElementById('lily-avatar').classList.add('speaking');
+          audio.onended = () => { document.getElementById('lily-avatar').classList.remove('speaking'); URL.revokeObjectURL(url); };
+          audio.play();
+          return;
+        } catch(e) { console.warn('Groq TTS failed, falling back to browser API', e); }
+      }
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = 'en-US';
-      utt.rate = 0.95;
-      utt.pitch = 1.0;
-      
-      const voices = synth.getVoices();
-      const preferred = voices.find(v => v.lang.startsWith('en-US') && (v.name.includes('Samantha') || v.name.includes('Google US English'))) 
-                     || voices.find(v => v.lang.startsWith('en'));
-      if (preferred) utt.voice = preferred;
-      
-      utt.onstart = () => { 
-        document.getElementById('lily-avatar').classList.add('speaking');
-        setStatus('Speaking...'); 
-      };
-      utt.onend = () => { 
-        document.getElementById('lily-avatar').classList.remove('speaking');
-        setStatus('Ready to practice'); 
-      };
-      utt.onerror = () => {
-        document.getElementById('lily-avatar').classList.remove('speaking');
-        setStatus('Ready to practice');
-      };
-      
-      synth.speak(utt);
+      utt.onstart = () => document.getElementById('lily-avatar').classList.add('speaking');
+      utt.onend = () => document.getElementById('lily-avatar').classList.remove('speaking');
+      window.speechSynthesis.speak(utt);
     }
 
-    function stripTip(t) {
-      return t.replace(/\[TIP:\s*.*?\]/s,'').trim();
+    function stripTip(t) { return t.replace(/\[TIP:\s*.*?\]/s,'').trim(); }
+
+    function setRecordingState(state) {
+      isRecording = state;
+      const btn = document.getElementById('mic-btn');
+      if (state) btn.classList.add('recording');
+      else btn.classList.remove('recording');
+      document.getElementById('mic-icon').setAttribute('data-lucide', state ? 'square' : 'mic');
+      lucide.createIcons();
     }
 
-    function toggleMic() {
-      isListening ? stopMic() : startMic();
-    }
-    
-    function startMic() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) { 
-        showToast('Speech recognition is not supported in this browser. Try Chrome.');
-        return; 
+    async function toggleMic() {
+      if (isRecording) {
+        if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+        else if (recognition) recognition.stop();
+        return;
       }
-      
-      try {
+      if (groqKey) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+          mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(t => t.stop());
+            setRecordingState(false);
+            if (audioChunks.length === 0) return;
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            showTyping();
+            try {
+              const formData = new FormData();
+              formData.append('file', audioBlob, 'audio.webm');
+              formData.append('model', 'whisper-large-v3-turbo');
+              const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { 'Authorization': `Bearer ${groqKey}` }, body: formData });
+              const data = await res.json();
+              if (data.text) { msgInput.value = data.text; msgInput.dispatchEvent(new Event('input')); sendMessage(); }
+            } catch (e) { showToast('Transcription failed.'); } finally { hideTyping(); }
+          };
+          mediaRecorder.start();
+          setRecordingState(true);
+          return;
+        } catch(e) { console.warn('Mic error, trying SpeechRecognition', e); }
+      }
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SR) {
         recognition = new SR();
         recognition.lang = 'en-US';
-        recognition.interimResults = false;
-        
-        recognition.onstart = () => {
-          isListening = true;
-          document.getElementById('mic-btn').classList.add('listening');
-          document.getElementById('mic-icon').setAttribute('data-lucide', 'square');
-          lucide.createIcons();
-          setStatus('Listening...');
-        };
-        
-        recognition.onresult = e => {
-          const t = e.results[0][0].transcript;
-          msgInput.value += (msgInput.value ? ' ' : '') + t;
-          msgInput.dispatchEvent(new Event('input')); // Trigger resize and button state
-        };
-        
-        recognition.onerror = e => {
-          console.error('Speech recognition error', e);
-          if(e.error !== 'no-speech') showToast('Microphone error: ' + e.error);
-          stopMic();
-        };
-        
-        recognition.onend = () => {
-          stopMic();
-        };
-        
+        recognition.onstart = () => setRecordingState(true);
+        recognition.onend = () => setRecordingState(false);
+        recognition.onresult = e => { msgInput.value = e.results[0][0].transcript; msgInput.dispatchEvent(new Event('input')); sendMessage(); };
         recognition.start();
-      } catch (e) {
-        console.error(e);
-        stopMic();
       }
-    }
-    
-    function stopMic() {
-      if (recognition) {
-        try { recognition.stop(); } catch(e) {}
-        recognition = null;
-      }
-      isListening = false;
-      const micBtn = document.getElementById('mic-btn');
-      micBtn.classList.remove('listening');
-      document.getElementById('mic-icon').setAttribute('data-lucide', 'mic');
       lucide.createIcons();
       setStatus('Ready to practice');
     }
