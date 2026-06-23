@@ -60,11 +60,11 @@
     #setup-screen {
       position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
       padding: 24px; z-index: 50; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(16px);
-      transition: opacity 0.4s;
+      transition: opacity 0.4s; overflow-y: auto;
     }
     .setup-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 24px;
-      padding: 40px; width: 100%; max-width: 480px;
+      padding: 40px; width: 100%; max-width: 480px; margin: auto;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(20px);
     }
@@ -79,10 +79,11 @@
     .setup-header h1 { font-size: 28px; font-weight: 700; background: linear-gradient(to right, #fff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .setup-header p { color: var(--text-muted); margin-top: 8px; font-size: 15px; }
 
-    .input-group { margin-bottom: 24px; }
+    .input-group { margin-bottom: 20px; }
     .input-group label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #e2e8f0; }
     .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
     .badge.groq { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .badge.openrouter { background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.3); }
     .badge.gemini { background: rgba(6, 182, 212, 0.2); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.3); }
     
     .input-wrapper { position: relative; }
@@ -103,6 +104,7 @@
       display: flex; align-items: center; justify-content: center; gap: 8px;
       transition: transform 0.2s, box-shadow 0.2s;
       box-shadow: 0 10px 20px -10px rgba(139, 92, 246, 0.6);
+      margin-top: 24px;
     }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 25px -10px rgba(139, 92, 246, 0.8); }
     .btn-primary:active { transform: translateY(0); }
@@ -353,13 +355,25 @@
         <p>Your AI-powered English Tutor</p>
       </div>
       
+      <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        Provide at least one API key to start.
+      </p>
+
       <div class="input-group">
-        <label>Groq API Key <span class="badge groq">Recommended</span></label>
+        <label>Groq API Key <span class="badge groq">Fastest</span></label>
         <div class="input-wrapper">
           <i data-lucide="key"></i>
           <input type="password" id="groq-key" class="setup-input" placeholder="gsk_..." autocomplete="off" />
         </div>
-        <div class="setup-hint">Get key: <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a></div>
+      </div>
+      
+      <div class="input-group">
+        <label>OpenRouter Key <span class="badge openrouter">Recommended</span></label>
+        <div class="input-wrapper">
+          <i data-lucide="key"></i>
+          <input type="password" id="openrouter-key" class="setup-input" placeholder="sk-or-v1-..." autocomplete="off" />
+        </div>
+        <div class="setup-hint">Uses Llama 3 8B. Get key: <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai</a></div>
       </div>
       
       <div class="input-group">
@@ -368,7 +382,6 @@
           <i data-lucide="key"></i>
           <input type="password" id="google-key" class="setup-input" placeholder="AIza..." autocomplete="off" />
         </div>
-        <div class="setup-hint">Get key: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></div>
       </div>
       
       <button class="btn-primary" onclick="startApp()">
@@ -476,7 +489,7 @@ Rules:
 - Always ask a follow-up question to keep the conversation going
 - Be warm, encouraging, and celebrate effort`;
 
-    let groqKey = '', googleKey = '';
+    let groqKey = '', googleKey = '', openrouterKey = '';
     let messages = [];
     let isLoading = false, isListening = false;
     let recognition = null;
@@ -506,8 +519,11 @@ Rules:
     window.onload = () => {
       const sg = localStorage.getItem('ianinha_groq');
       const sk = localStorage.getItem('ianinha_google');
+      const so = localStorage.getItem('ianinha_openrouter');
+      
       if (sg) document.getElementById('groq-key').value = sg;
       if (sk) document.getElementById('google-key').value = sk;
+      if (so) document.getElementById('openrouter-key').value = so;
       buildTopics();
       
       // Load voices
@@ -519,16 +535,21 @@ Rules:
     function startApp() {
       groqKey = document.getElementById('groq-key').value.trim();
       googleKey = document.getElementById('google-key').value.trim();
+      openrouterKey = document.getElementById('openrouter-key').value.trim();
       
-      if (!groqKey && !googleKey) {
+      if (!groqKey && !googleKey && !openrouterKey) {
         showToast('Please provide at least one API key to continue.');
         return;
       }
       
       localStorage.setItem('ianinha_groq', groqKey);
       localStorage.setItem('ianinha_google', googleKey);
+      localStorage.setItem('ianinha_openrouter', openrouterKey);
       
-      activeProvider = groqKey ? 'Groq' : 'Google';
+      if (openrouterKey) activeProvider = 'OpenRouter';
+      if (googleKey) activeProvider = 'Google';
+      if (groqKey) activeProvider = 'Groq';
+      
       document.getElementById('provider-name').textContent = activeProvider;
       
       document.getElementById('setup-screen').style.opacity = '0';
@@ -622,39 +643,41 @@ Rules:
     }
 
     async function callAI(history) {
+      // 1. Try Groq
       if (groqKey) {
         try {
+          activeProvider = 'Groq';
+          document.getElementById('provider-name').textContent = activeProvider;
           return await callGroq(history);
         } catch(e) {
-          console.warn('Groq failed, trying Google...', e);
-          if (googleKey) {
-            activeProvider = 'Google (fallback)';
-            document.getElementById('provider-name').textContent = activeProvider;
-            try {
-              return await callGoogle(history);
-            } catch(e2) {
-              console.error('Google fallback failed', e2);
-              showToast('Both APIs failed. Check your keys.');
-              return "I'm having connection issues with both APIs. Check your keys.";
-            }
-          } else {
-             showToast('Groq API error. Check CORS or invalid key.');
-             return "I'm having connection issues with the Groq API. Check your keys or network.";
-          }
+          console.warn('Groq failed:', e);
         }
       }
       
+      // 2. Try OpenRouter Fallback
+      if (openrouterKey) {
+        try {
+          activeProvider = 'OpenRouter (fallback)';
+          document.getElementById('provider-name').textContent = activeProvider;
+          return await callOpenRouter(history);
+        } catch(e) {
+          console.warn('OpenRouter failed:', e);
+        }
+      }
+      
+      // 3. Try Google Fallback
       if (googleKey) {
         try {
+          activeProvider = 'Google (fallback)';
+          document.getElementById('provider-name').textContent = activeProvider;
           return await callGoogle(history);
         } catch(e) {
-          console.error('Google failed', e);
-          showToast('Google API error. Please check your key.');
-          return "I'm having connection issues with the Google API.";
+          console.warn('Google failed:', e);
         }
       }
       
-      return "No API keys configured properly!";
+      showToast('All configured APIs failed. Check your keys or connection.');
+      throw new Error("All APIs failed");
     }
 
     async function callGroq(history) {
@@ -670,6 +693,28 @@ Rules:
       });
       if (!res.ok) throw new Error(`Groq HTTP ${res.status}`);
       const d = await res.json();
+      return d.choices[0].message.content;
+    }
+
+    async function callOpenRouter(history) {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method:'POST',
+        headers:{ 
+          'Content-Type':'application/json', 
+          'Authorization':`Bearer ${openrouterKey}`,
+          'HTTP-Referer': window.location.href,
+          'X-Title': 'IAninha Teacher'
+        },
+        body: JSON.stringify({ 
+          model:'meta-llama/llama-3-8b-instruct:free', 
+          messages:[{ role:'system', content:SYSTEM_PROMPT }, ...history], 
+          max_tokens:600, 
+          temperature:0.7 
+        })
+      });
+      if (!res.ok) throw new Error(`OpenRouter HTTP ${res.status}`);
+      const d = await res.json();
+      if (!d.choices || d.choices.length === 0) throw new Error("Empty OpenRouter response");
       return d.choices[0].message.content;
     }
 
@@ -692,7 +737,7 @@ Rules:
       });
       if (!res.ok) throw new Error(`Google HTTP ${res.status}`);
       const d = await res.json();
-      if(!d.candidates || d.candidates.length === 0) return "Oops, no response from Gemini.";
+      if(!d.candidates || d.candidates.length === 0) throw new Error("Oops, no response from Gemini.");
       return d.candidates[0].content.parts[0].text;
     }
 
