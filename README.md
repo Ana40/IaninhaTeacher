@@ -2,7 +2,7 @@
 
 **IAninha** é uma plataforma de tutoria de inglês inteligente, responsiva e focada na prática de conversação real (texto e voz). O projeto foi desenhado para ajudar profissionais, em especial desenvolvedores, a aprimorarem seu inglês em cenários do dia a dia e no ambiente corporativo (como reuniões Dailys e Plannings de Scrum).
 
-> ☕❤️ **Criado por Ana Rodrigues com muito café e amor.**
+> ☕❤️ **Criado por Ana Carla Rodrigues com muito café e amor.**
 
 ---
 
@@ -41,4 +41,4 @@ Na tela inicial, você deve fornecer as formas de autenticação com a Inteligê
 As suas chaves de acesso (API Keys) ficam salvas **exclusivamente** no cache do seu próprio navegador (via `localStorage`). O repositório é composto de arquivos estáticos, o que significa que nenhum servidor intermediário tem acesso aos seus dados. A conexão sai da sua máquina direto para o servidor da IA escolhida.
 
 ---
-*Developed by Ana Rodrigues.*
+*Developed by Ana Carla Rodrigues.*
