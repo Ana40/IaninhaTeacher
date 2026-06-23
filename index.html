@@ -365,8 +365,8 @@
           <i data-lucide="key"></i>
           <input type="password" id="groq-key" class="setup-input" placeholder="gsk_..." autocomplete="off" />
         </div>
+        <div class="setup-hint">Uses GPT-OSS 120B. Get key: <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a></div>
       </div>
-      
       <div class="input-group">
         <label>OpenRouter Key <span class="badge openrouter">Recommended</span></label>
         <div class="input-wrapper">
@@ -692,7 +692,7 @@ Rules:
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
         body: JSON.stringify({ 
-          model:'llama3-8b-8192', 
+          model:'openai/gpt-oss-120b', 
           messages:[{ role:'system', content:SYSTEM_PROMPT }, ...history], 
           max_tokens:600, 
           temperature:0.7 
