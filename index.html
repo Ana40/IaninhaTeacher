@@ -333,6 +333,33 @@
       .msg-group { max-width: 90%; }
       #app-screen { border: none; }
     }
+
+    .author-signature {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      opacity: 0.8;
+    }
+    .author-signature strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .author-signature svg {
+      width: 14px;
+      height: 14px;
+    }
+    .author-signature svg[data-lucide="heart"] {
+      color: #ef4444;
+      fill: #ef4444;
+    }
+    .author-signature svg[data-lucide="coffee"] {
+      color: #d97706;
+    }
   </style>
 </head>
 <body>
@@ -404,6 +431,10 @@
         <span>Start Learning</span>
         <i data-lucide="arrow-right"></i>
       </button>
+      
+      <div class="author-signature">
+        Criado por <strong>Ana Rodrigues</strong> com muito <i data-lucide="coffee"></i> e amor <i data-lucide="heart"></i>
+      </div>
     </div>
   </div>
 
