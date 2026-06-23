@@ -123,48 +123,12 @@
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
       position: relative; transition: all 0.3s;
+      overflow: hidden; border: 2px solid var(--border);
     }
+    .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .header-avatar.speaking {
       box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.3), 0 0 20px rgba(139, 92, 246, 0.8);
-    }
-    
-    /* 2D Animated Avatar */
-    .teacher-face {
-      width: 100%; height: 100%; border-radius: 50%; position: relative;
-      background: linear-gradient(135deg, #fde047, #f59e0b);
-      overflow: hidden; border: 2px solid #fff;
-    }
-    .face-eye {
-      width: 6px; height: 8px; background: #1e293b; border-radius: 50%;
-      position: absolute; top: 40%; animation: blink-eyes 4s infinite;
-    }
-    .face-eye.left { left: 30%; }
-    .face-eye.right { right: 30%; }
-    .face-blush {
-      width: 10px; height: 5px; background: #ef4444; border-radius: 50%;
-      position: absolute; top: 52%; opacity: 0.4;
-    }
-    .face-blush.left { left: 18%; }
-    .face-blush.right { right: 18%; }
-    .face-mouth {
-      width: 16px; height: 4px; background: #1e293b; border-radius: 10px;
-      position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%);
-      transition: all 0.1s;
-    }
-    
-    .header-avatar.speaking .face-mouth {
-      animation: talk-mouth 0.3s infinite alternate;
-    }
-
-    @keyframes talk-mouth {
-      0% { height: 4px; width: 16px; border-radius: 10px; }
-      40% { height: 14px; width: 12px; border-radius: 50%; }
-      80% { height: 8px; width: 18px; border-radius: 10px; }
-      100% { height: 12px; width: 10px; border-radius: 40%; }
-    }
-    @keyframes blink-eyes {
-      0%, 94%, 100% { transform: scaleY(1); }
-      97% { transform: scaleY(0.1); }
+      border-color: var(--primary);
     }
 
     .header-text h2 { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
@@ -334,17 +298,27 @@
       #app-screen { border: none; }
     }
 
-    .teacher-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+    .teacher-selector { display: flex; gap: 15px; margin-bottom: 25px; }
     .teacher-option { flex: 1; cursor: pointer; }
     .teacher-option input { display: none; }
     .teacher-box {
-      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-      padding: 12px; border-radius: 12px; text-align: center; font-weight: 500;
-      color: var(--text-muted); transition: all 0.2s;
+      background: rgba(255,255,255,0.03); border: 2px solid var(--border);
+      padding: 16px 12px; border-radius: 16px; text-align: center; font-weight: 500;
+      color: var(--text-muted); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
     }
+    .teacher-avatar-preview {
+      width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent;
+      overflow: hidden; background: var(--surface); transition: all 0.3s;
+    }
+    .teacher-avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .teacher-option:hover .teacher-box { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
     .teacher-option input:checked + .teacher-box {
       background: rgba(139, 92, 246, 0.1); border-color: var(--primary);
-      color: var(--primary);
+      color: #fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.15);
+    }
+    .teacher-option input:checked + .teacher-box .teacher-avatar-preview {
+      border-color: var(--primary); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
     }
 
     .author-signature {
@@ -400,11 +374,17 @@
         <div class="teacher-selector">
           <label class="teacher-option">
             <input type="radio" name="teacher" value="ianinha" checked>
-            <div class="teacher-box">👩‍🏫 IAninha</div>
+            <div class="teacher-box">
+              <div class="teacher-avatar-preview"><img src="./ianinha.png" alt="IAninha"></div>
+              <span>IAninha</span>
+            </div>
           </label>
           <label class="teacher-option">
             <input type="radio" name="teacher" value="iafred">
-            <div class="teacher-box">👨‍🏫 IAfred</div>
+            <div class="teacher-box">
+              <div class="teacher-avatar-preview"><img src="./iafred.png" alt="IAfred"></div>
+              <span>IAfred</span>
+            </div>
           </label>
         </div>
       </div>
@@ -470,13 +450,7 @@
     <header>
       <div class="header-info">
         <div class="header-avatar" id="lily-avatar">
-          <div class="teacher-face">
-            <div class="face-eye left"></div>
-            <div class="face-eye right"></div>
-            <div class="face-blush left"></div>
-            <div class="face-blush right"></div>
-            <div class="face-mouth"></div>
-          </div>
+          <img src="./ianinha.png" id="active-teacher-img" alt="Teacher">
         </div>
         <div class="header-text">
           <h2 id="teacher-title-header">IAninha</h2>
@@ -629,8 +603,10 @@ Rules:
       const teacherChoice = document.querySelector('input[name="teacher"]:checked').value;
       if (teacherChoice === 'iafred') {
         teacherName = 'IAfred';
+        document.getElementById('active-teacher-img').src = './iafred.png';
       } else {
         teacherName = 'IAninha';
+        document.getElementById('active-teacher-img').src = './ianinha.png';
       }
       
       document.getElementById('teacher-title-header').textContent = teacherName;
