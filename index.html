@@ -672,12 +672,13 @@ Rules:
     }
 
     async function callGroq(history) {
+      const cleanHistory = history.map(m => ({ role: m.role, content: m.content }));
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
         body: JSON.stringify({ 
           model:'openai/gpt-oss-120b', 
-          messages:[{ role:'system', content:SYSTEM_PROMPT }, ...history], 
+          messages:[{ role:'system', content:SYSTEM_PROMPT }, ...cleanHistory], 
           max_completion_tokens:1024, 
           temperature:0.7 
         })
@@ -688,6 +689,7 @@ Rules:
     }
 
     async function callOpenRouter(history) {
+      const cleanHistory = history.map(m => ({ role: m.role, content: m.content }));
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method:'POST',
         headers:{ 
@@ -698,7 +700,7 @@ Rules:
         },
         body: JSON.stringify({ 
           model:'meta-llama/llama-3.3-70b-instruct:free', 
-          messages:[{ role:'system', content:SYSTEM_PROMPT }, ...history], 
+          messages:[{ role:'system', content:SYSTEM_PROMPT }, ...cleanHistory], 
           max_tokens:600, 
           temperature:0.7 
         })
@@ -774,6 +776,7 @@ Rules:
 
     let typingEl = null;
     function showTyping() {
+      if (typingEl) hideTyping();
       const msgs = document.getElementById('messages');
       const group = document.createElement('div');
       group.className = 'msg-group ai';
@@ -787,6 +790,8 @@ Rules:
     
     function hideTyping() {
       if (typingEl) { typingEl.remove(); typingEl = null; }
+      const oldTyping = document.querySelectorAll('#typing-indicator-wrapper');
+      oldTyping.forEach(el => el.remove());
     }
 
     function scrollToBottom() {
