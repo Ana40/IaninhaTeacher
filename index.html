@@ -643,7 +643,7 @@ Rules:
     }
 
     async function callAI(history) {
-      let lastError = "No APIs configured or valid.";
+      let errors = [];
 
       // 1. Try Groq
       if (groqKey) {
@@ -653,7 +653,7 @@ Rules:
           return await callGroq(history);
         } catch(e) {
           console.warn('Groq failed:', e);
-          lastError = "Groq error: " + e.message;
+          errors.push("Groq: " + e.message);
         }
       }
       
@@ -666,7 +666,7 @@ Rules:
           return await callOpenRouter(history);
         } catch(e) {
           console.warn('OpenRouter failed:', e);
-          lastError = "OpenRouter error: " + e.message;
+          errors.push("OpenRouter: " + e.message);
         }
       }
       
@@ -679,11 +679,12 @@ Rules:
           return await callGoogle(history);
         } catch(e) {
           console.warn('Google failed:', e);
-          lastError = "Google error: " + e.message;
+          errors.push("Google: " + e.message);
         }
       }
       
-      throw new Error(lastError);
+      if (errors.length === 0) errors.push("No APIs configured.");
+      throw new Error(errors.join(" | "));
     }
 
     async function callGroq(history) {
