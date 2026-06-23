@@ -3,192 +3,427 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IAninha — Your English Teacher</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <title>IAninha — Modern English Tutor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --purple: #7C3AED; --purple-light: #A78BFA; --purple-soft: #EDE9FE;
-      --teal: #0D9488; --teal-light: #5EEAD4; --teal-soft: #CCFBF1;
-      --bg: #F8F7FF; --surface: #FFFFFF; --text: #1C1B2E;
-      --text-muted: #6B7280; --border: #E5E7EB;
-      --tip: #FEF3C7; --tip-border: #F59E0B; --tip-text: #92400E;
-      --error: #FEE2E2; --error-text: #991B1B;
+      --bg: #0f172a;
+      --surface: rgba(30, 41, 59, 0.7);
+      --surface-hover: rgba(30, 41, 59, 0.9);
+      --border: rgba(255, 255, 255, 0.1);
+      --border-focus: rgba(139, 92, 246, 0.5);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --secondary: #06b6d4;
+      --accent: #f43f5e;
+      --chat-user: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      --chat-ai: rgba(30, 41, 59, 0.8);
+      --tip-bg: rgba(245, 158, 11, 0.1);
+      --tip-border: rgba(245, 158, 11, 0.3);
+      --tip-text: #fcd34d;
+      --danger: #ef4444;
     }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-    /* SETUP */
-    #setup-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(160deg, #EDE9FE 0%, #F0FDFA 100%); }
-    .setup-card { background: var(--surface); border-radius: 24px; padding: 40px 36px; max-width: 480px; width: 100%; box-shadow: 0 8px 40px #7C3AED18; }
-    .setup-logo { text-align: center; margin-bottom: 28px; }
-    .setup-logo .avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--teal)); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 12px; box-shadow: 0 4px 20px #7C3AED33; }
-    .setup-logo h1 { font-family: 'Nunito', sans-serif; font-size: 26px; font-weight: 800; color: var(--purple); }
-    .setup-logo p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
-    .setup-field { margin-bottom: 20px; }
-    .setup-field label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-    .setup-field label .badge { font-size: 10px; font-weight: 700; background: var(--purple-soft); color: var(--purple); border-radius: 20px; padding: 1px 7px; }
-    .setup-field label .badge.secondary { background: var(--teal-soft); color: var(--teal); }
-    .setup-field input { width: 100%; border: 1.5px solid var(--border); border-radius: 12px; padding: 11px 14px; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text); transition: border-color 0.2s; background: #FAFAFA; }
-    .setup-field input:focus { outline: none; border-color: var(--purple-light); background: #fff; }
-    .setup-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 5px; }
-    .setup-hint a { color: var(--purple); text-decoration: none; }
-    .setup-hint a:hover { text-decoration: underline; }
-    .setup-note { background: var(--teal-soft); border: 1px solid var(--teal-light); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; color: var(--teal); margin-bottom: 24px; line-height: 1.5; }
-    .btn-start { width: 100%; background: linear-gradient(135deg, var(--purple), var(--teal)); color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; transition: opacity 0.2s, transform 0.1s; letter-spacing: 0.3px; }
-    .btn-start:hover { opacity: 0.92; }
-    .btn-start:active { transform: scale(0.98); }
+    /* Background Animations */
+    .bg-blobs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; pointer-events: none; }
+    .blob { position: absolute; filter: blur(100px); border-radius: 50%; animation: float 10s infinite alternate ease-in-out; opacity: 0.4; }
+    .blob-1 { width: 500px; height: 500px; background: var(--primary); top: -200px; left: -100px; animation-delay: 0s; }
+    .blob-2 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; right: -100px; animation-delay: -5s; }
+    .blob-3 { width: 300px; height: 300px; background: var(--accent); top: 40%; left: 50%; animation-delay: -2s; transform: translate(-50%, -50%); opacity: 0.2; }
 
-    /* APP */
-    #app-screen { display: none; flex-direction: column; height: 100vh; }
-    header { background: linear-gradient(90deg, var(--purple) 0%, var(--teal) 100%); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px #7C3AED22; flex-shrink: 0; }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .header-avatar { width: 44px; height: 44px; border-radius: 50%; background: #ffffff30; border: 2px solid #ffffff60; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: box-shadow 0.3s; }
-    .header-avatar.speaking { box-shadow: 0 0 0 3px #fff6, 0 0 16px #A78BFA; }
-    .header-info h2 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 17px; color: #fff; }
-    .header-status { font-size: 11px; color: #ffffffbb; display: flex; align-items: center; gap: 4px; }
-    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #5EEAD4; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .header-right { display: flex; align-items: center; gap: 8px; }
-    .provider-badge { font-size: 11px; font-weight: 600; background: #ffffff20; color: #fff; border-radius: 20px; padding: 3px 10px; border: 1px solid #ffffff30; }
-    .btn-reset { background: #ffffff20; border: 1px solid #ffffff30; border-radius: 10px; color: #fff; padding: 5px 12px; font-size: 12px; cursor: pointer; }
-    .btn-reset:hover { background: #ffffff35; }
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 30px) scale(1.1); }
+    }
 
-    /* TOPICS */
-    #topics-section { flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; }
-    .topics-intro { text-align: center; margin-bottom: 24px; }
-    .topics-intro .wave { font-size: 36px; margin-bottom: 8px; }
-    .topics-intro h3 { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: var(--text); }
-    .topics-intro p { color: var(--text-muted); font-size: 13.5px; margin-top: 6px; }
-    .topics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; width: 100%; max-width: 640px; }
-    .topic-btn { background: var(--surface); border: 2px solid var(--border); border-radius: 16px; padding: 20px 14px; text-align: center; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .topic-btn:hover { border-color: var(--purple-light); box-shadow: 0 4px 16px #7C3AED15; transform: translateY(-2px); }
-    .topic-btn:active { transform: scale(0.97); }
-    .topic-btn .icon { font-size: 30px; }
-    .topic-btn span { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13.5px; color: var(--text); }
+    h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
 
-    /* CHAT */
-    #chat-section { display: none; flex-direction: column; flex: 1; overflow: hidden; }
-    .topic-bar { text-align: center; padding: 8px; background: var(--purple-soft); flex-shrink: 0; }
-    .topic-bar span { font-size: 12px; font-weight: 600; color: var(--purple); }
-    #messages { flex: 1; overflow-y: auto; padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 14px; }
-    .msg-row { display: flex; gap: 8px; align-items: flex-end; }
-    .msg-row.user { flex-direction: row-reverse; }
-    .msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-    .msg-avatar.lily { background: linear-gradient(135deg, var(--purple), var(--teal)); }
-    .msg-avatar.user-av { background: linear-gradient(135deg, #F472B6, #EC4899); }
-    .msg-content { max-width: 75%; display: flex; flex-direction: column; gap: 5px; }
-    .bubble { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
-    .bubble.lily-bubble { background: var(--surface); color: var(--text); border-radius: 4px 18px 18px 18px; box-shadow: 0 2px 8px #0000000c; }
-    .bubble.user-bubble { background: linear-gradient(135deg, var(--purple), var(--purple-light)); color: #fff; border-radius: 18px 18px 4px 18px; }
-    .tip-box { background: var(--tip); border: 1px solid var(--tip-border); border-radius: 10px; padding: 7px 12px; font-size: 12.5px; color: var(--tip-text); display: flex; gap: 6px; align-items: flex-start; }
-    .listen-btn { background: none; border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--purple); cursor: pointer; align-self: flex-start; }
-    .listen-btn:hover { background: var(--purple-soft); }
-    .typing-dots { display: flex; gap: 4px; align-items: center; padding: 10px 14px; background: var(--surface); border-radius: 4px 18px 18px 18px; box-shadow: 0 2px 8px #0000000c; width: fit-content; }
-    .typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--purple-light); animation: typingBounce 1.2s ease-in-out infinite; }
-    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes typingBounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+    /* Button Reset */
+    button { font-family: 'Inter', sans-serif; border: none; cursor: pointer; outline: none; }
 
-    /* INPUT */
-    .input-bar { background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
-    #msg-input { flex: 1; border: 1.5px solid var(--border); border-radius: 14px; padding: 10px 14px; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text); resize: none; max-height: 100px; line-height: 1.5; transition: border-color 0.2s; }
-    #msg-input:focus { outline: none; border-color: var(--purple-light); }
-    .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; transition: transform 0.1s; }
-    .icon-btn:active { transform: scale(0.93); }
-    #mic-btn { background: var(--purple-soft); color: var(--purple); }
-    #mic-btn.listening { background: #FEE2E2; color: #DC2626; animation: micPulse 1s ease-in-out infinite; }
-    @keyframes micPulse { 0%, 100% { box-shadow: 0 0 0 0 #DC262640; } 50% { box-shadow: 0 0 0 6px #DC262610; } }
-    #send-btn { background: linear-gradient(135deg, var(--purple), var(--teal)); color: #fff; }
-    #send-btn:disabled { background: var(--border); cursor: not-allowed; }
+    /* Setup Screen */
+    #setup-screen {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 24px; z-index: 50; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(16px);
+      transition: opacity 0.4s;
+    }
+    .setup-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 24px;
+      padding: 40px; width: 100%; max-width: 480px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(20px);
+    }
+    .setup-header { text-align: center; margin-bottom: 32px; }
+    .setup-avatar {
+      width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 16px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+    }
+    .setup-avatar i { width: 40px; height: 40px; color: #fff; }
+    .setup-header h1 { font-size: 28px; font-weight: 700; background: linear-gradient(to right, #fff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .setup-header p { color: var(--text-muted); margin-top: 8px; font-size: 15px; }
 
-    #error-toast { display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--error); color: var(--error-text); border-radius: 12px; padding: 10px 18px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 16px #0000001a; z-index: 100; max-width: 340px; text-align: center; }
+    .input-group { margin-bottom: 24px; }
+    .input-group label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #e2e8f0; }
+    .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
+    .badge.groq { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .badge.gemini { background: rgba(6, 182, 212, 0.2); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.3); }
+    
+    .input-wrapper { position: relative; }
+    .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px; }
+    .setup-input {
+      width: 100%; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 14px 14px 40px; color: var(--text);
+      font-size: 15px; transition: all 0.2s;
+    }
+    .setup-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); outline: none; }
+    .setup-hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+    .setup-hint a { color: var(--secondary); text-decoration: none; transition: color 0.2s; }
+    .setup-hint a:hover { color: #22d3ee; text-decoration: underline; }
 
-    @media (max-width: 500px) {
-      .setup-card { padding: 28px 20px; }
-      .topics-grid { grid-template-columns: repeat(2, 1fr); }
-      .msg-content { max-width: 85%; }
+    .btn-primary {
+      width: 100%; background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 10px 20px -10px rgba(139, 92, 246, 0.6);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 25px -10px rgba(139, 92, 246, 0.8); }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* App Screen */
+    #app-screen { display: none; flex-direction: column; height: 100%; width: 100%; max-width: 1000px; margin: 0 auto; background: var(--surface); border-left: 1px solid var(--border); border-right: 1px solid var(--border); backdrop-filter: blur(20px); box-shadow: 0 0 40px rgba(0,0,0,0.3); }
+
+    /* Header */
+    header {
+      padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border); background: rgba(15, 23, 42, 0.4); flex-shrink: 0;
+    }
+    .header-info { display: flex; align-items: center; gap: 16px; }
+    .header-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+      position: relative; transition: all 0.3s;
+    }
+    .header-avatar.speaking {
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.3), 0 0 20px rgba(139, 92, 246, 0.8);
+      animation: pulse-avatar 1.5s infinite;
+    }
+    @keyframes pulse-avatar { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    .header-avatar i { color: #fff; width: 24px; height: 24px; }
+    .header-text h2 { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
+    .header-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--secondary); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--secondary); animation: blink 2s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .btn-icon-text {
+      display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); padding: 8px 12px; border-radius: 10px;
+      color: var(--text-muted); font-size: 13px; font-weight: 500; transition: all 0.2s;
+    }
+    .btn-icon-text:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+    .btn-icon-text i { width: 14px; height: 14px; }
+
+    /* Topics Section */
+    #topics-section { flex: 1; overflow-y: auto; padding: 40px 24px; }
+    .topics-header { text-align: center; margin-bottom: 40px; }
+    .topics-header h3 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .topics-header p { color: var(--text-muted); font-size: 16px; }
+    .topics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; max-width: 800px; margin: 0 auto; }
+    
+    .topic-card {
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px; display: flex; flex-direction: column;
+      align-items: center; text-align: center; gap: 16px; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .topic-card:hover {
+      background: rgba(255, 255, 255, 0.08); border-color: var(--primary);
+      transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.2);
+    }
+    .topic-icon {
+      width: 56px; height: 56px; border-radius: 16px; background: rgba(139, 92, 246, 0.1);
+      color: var(--primary); display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s;
+    }
+    .topic-card:hover .topic-icon { background: var(--primary); color: #fff; transform: scale(1.1) rotate(5deg); }
+    .topic-icon i { width: 28px; height: 28px; }
+    .topic-card span { font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #e2e8f0; }
+
+    /* Chat Section */
+    #chat-section { display: none; flex-direction: column; flex: 1; overflow: hidden; position: relative; }
+    .active-topic-bar {
+      background: rgba(15, 23, 42, 0.8); border-bottom: 1px solid var(--border); flex-shrink: 0;
+      padding: 10px 24px; display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 13px; color: var(--text-muted); font-weight: 500;
+    }
+    .active-topic-bar i { width: 14px; height: 14px; color: var(--primary); }
+    
+    #messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; scroll-behavior: smooth; }
+    
+    .msg-group { display: flex; gap: 16px; max-width: 85%; }
+    .msg-group.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg-group.ai { align-self: flex-start; }
+    
+    .msg-avatar {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .msg-group.user .msg-avatar { background: linear-gradient(135deg, #3b82f6, #2dd4bf); color: #fff; }
+    .msg-group.ai .msg-avatar { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
+    .msg-avatar i { width: 18px; height: 18px; }
+
+    .msg-content { display: flex; flex-direction: column; gap: 8px; }
+    .msg-group.user .msg-content { align-items: flex-end; }
+    .msg-group.ai .msg-content { align-items: flex-start; }
+
+    .bubble {
+      padding: 14px 18px; font-size: 15px; line-height: 1.6; border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); white-space: pre-wrap;
+    }
+    .msg-group.user .bubble { background: var(--chat-user); color: #fff; border-bottom-right-radius: 4px; }
+    .msg-group.ai .bubble { background: var(--chat-ai); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; backdrop-filter: blur(10px); }
+
+    .tip-box {
+      background: var(--tip-bg); border: 1px solid var(--tip-border); border-radius: 12px;
+      padding: 12px 16px; font-size: 14px; color: var(--tip-text);
+      display: flex; gap: 12px; align-items: flex-start; max-width: 400px;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.05);
+    }
+    .tip-box i { width: 20px; height: 20px; flex-shrink: 0; color: #f59e0b; }
+    .tip-content { line-height: 1.5; font-weight: 500; }
+
+    .action-row { display: flex; gap: 8px; margin-top: 4px; }
+    .btn-small {
+      display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px;
+      font-size: 12px; color: var(--text-muted); transition: all 0.2s;
+    }
+    .btn-small:hover { background: rgba(139, 92, 246, 0.1); color: var(--primary); border-color: rgba(139, 92, 246, 0.3); }
+    .btn-small i { width: 14px; height: 14px; }
+
+    .typing-indicator {
+      display: flex; gap: 4px; padding: 16px 20px; background: var(--chat-ai);
+      border: 1px solid var(--border); border-radius: 20px; border-bottom-left-radius: 4px;
+      width: fit-content;
+    }
+    .typing-indicator span { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+    /* Input Area */
+    .input-area {
+      padding: 20px 24px; background: rgba(15, 23, 42, 0.8); border-top: 1px solid var(--border); flex-shrink: 0;
+      display: flex; align-items: flex-end; gap: 12px; backdrop-filter: blur(20px);
+    }
+    .input-box {
+      flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+      border-radius: 20px; padding: 14px 20px; display: flex; align-items: flex-end; gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .input-box:focus-within { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); }
+    
+    #msg-input {
+      flex: 1; background: transparent; border: none; color: var(--text);
+      font-size: 15px; font-family: 'Inter', sans-serif; resize: none; max-height: 120px;
+      line-height: 1.5; outline: none; padding: 0;
+    }
+    #msg-input::placeholder { color: var(--text-muted); }
+
+    .btn-round {
+      width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.2s; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .btn-mic { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: var(--text); }
+    .btn-mic:hover { background: rgba(255,255,255,0.15); }
+    .btn-mic.listening {
+      background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #ef4444;
+      animation: pulse-mic 1.5s infinite;
+    }
+    @keyframes pulse-mic { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+    
+    .btn-send { background: linear-gradient(135deg, var(--primary), var(--secondary)); opacity: 0.5; pointer-events: none; }
+    .btn-send.active { opacity: 1; pointer-events: auto; }
+    .btn-send.active:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(139, 92, 246, 0.4); }
+    .btn-send.active:active { transform: translateY(0); }
+    .btn-round i { width: 20px; height: 20px; }
+    .btn-send i { margin-left: 2px; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+      background: var(--danger); color: #fff; padding: 12px 24px; border-radius: 12px;
+      font-size: 14px; font-weight: 500; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+      display: flex; align-items: center; gap: 10px; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 100;
+    }
+    #toast.show { bottom: 30px; }
+    #toast i { width: 18px; height: 18px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    @media (max-width: 768px) {
+      .setup-card { padding: 30px 20px; }
+      header { padding: 12px 16px; }
+      #topics-section { padding: 24px 16px; }
+      #messages { padding: 16px; }
+      .input-area { padding: 16px; }
+      .msg-group { max-width: 90%; }
+      #app-screen { border: none; }
     }
   </style>
 </head>
 <body>
 
-<div id="setup-screen">
-  <div class="setup-card">
-    <div class="setup-logo">
-      <div class="avatar">👩‍🏫</div>
-      <h1>IAninha — Your English Teacher</h1>
-      <p>Your personal AI English tutor</p>
-    </div>
-    <div class="setup-note">
-      🔒 Suas chaves ficam salvas só no seu navegador (localStorage). Nunca são enviadas para nenhum servidor além das APIs escolhidas.
-    </div>
-    <div class="setup-field">
-      <label>Groq API Key <span class="badge">⚡ Mais rápido (principal)</span></label>
-      <input type="password" id="groq-key" placeholder="gsk_..." autocomplete="off" />
-      <p class="setup-hint">Pegar chave: <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a></p>
-    </div>
-    <div class="setup-field">
-      <label>Google AI Studio Key <span class="badge secondary">🧠 Backup automático</span></label>
-      <input type="password" id="google-key" placeholder="AIza..." autocomplete="off" />
-      <p class="setup-hint">Pegar chave: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></p>
-    </div>
-    <button class="btn-start" onclick="startApp()">Começar a estudar 🚀</button>
+  <!-- Background Animated Blobs -->
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
   </div>
-</div>
 
-<div id="app-screen">
-  <header>
-    <div class="header-left">
-      <div class="header-avatar" id="lily-avatar">👩‍🏫</div>
+  <!-- Setup Screen -->
+  <div id="setup-screen">
+    <div class="setup-card">
+      <div class="setup-header">
+        <div class="setup-avatar">
+          <i data-lucide="sparkles"></i>
+        </div>
+        <h1>IAninha Teacher</h1>
+        <p>Your AI-powered English Tutor</p>
+      </div>
+      
+      <div class="input-group">
+        <label>Groq API Key <span class="badge groq">Recommended</span></label>
+        <div class="input-wrapper">
+          <i data-lucide="key"></i>
+          <input type="password" id="groq-key" class="setup-input" placeholder="gsk_..." autocomplete="off" />
+        </div>
+        <div class="setup-hint">Get key: <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a></div>
+      </div>
+      
+      <div class="input-group">
+        <label>Google AI Studio Key <span class="badge gemini">Fallback</span></label>
+        <div class="input-wrapper">
+          <i data-lucide="key"></i>
+          <input type="password" id="google-key" class="setup-input" placeholder="AIza..." autocomplete="off" />
+        </div>
+        <div class="setup-hint">Get key: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></div>
+      </div>
+      
+      <button class="btn-primary" onclick="startApp()">
+        <span>Start Learning</span>
+        <i data-lucide="arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- App Screen -->
+  <div id="app-screen">
+    <header>
       <div class="header-info">
-        <h2>IAninha</h2>
-        <div class="header-status">
-          <div class="status-dot"></div>
-          <span id="status-text">Ready to practice</span>
+        <div class="header-avatar" id="lily-avatar">
+          <i data-lucide="bot"></i>
+        </div>
+        <div class="header-text">
+          <h2>IAninha</h2>
+          <div class="header-status">
+            <div class="status-dot"></div>
+            <span id="status-text">Ready to practice</span>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="header-right">
-      <span class="provider-badge" id="provider-badge">⚡ Groq</span>
-      <button class="btn-reset" onclick="resetChat()">↩ New chat</button>
-    </div>
-  </header>
+      <div class="header-actions">
+        <span class="btn-icon-text" id="provider-badge" title="Current AI Provider">
+          <i data-lucide="zap"></i> <span id="provider-name">Groq</span>
+        </span>
+        <button class="btn-icon-text" onclick="resetChat()" title="Start New Conversation">
+          <i data-lucide="refresh-cw"></i> <span>Reset</span>
+        </button>
+      </div>
+    </header>
 
-  <div id="topics-section">
-    <div class="topics-intro">
-      <div class="wave">👋</div>
-      <h3>Hi! I'm IAninha, your English teacher</h3>
-      <p>Choose a topic to start practicing</p>
+    <!-- Topics Section -->
+    <div id="topics-section">
+      <div class="topics-header">
+        <h3>Hi! I'm IAninha 👋</h3>
+        <p>Choose a topic to start practicing your English</p>
+      </div>
+      <div class="topics-grid" id="topics-grid">
+        <!-- Topics will be injected here -->
+      </div>
     </div>
-    <div class="topics-grid" id="topics-grid"></div>
+
+    <!-- Chat Section -->
+    <div id="chat-section">
+      <div class="active-topic-bar">
+        <i data-lucide="hash"></i> <span id="topic-label">Conversation</span>
+      </div>
+      
+      <div id="messages">
+        <!-- Messages will appear here -->
+      </div>
+      
+      <div class="input-area">
+        <div class="input-box">
+          <textarea id="msg-input" rows="1" placeholder="Type in English or Portuguese..."></textarea>
+        </div>
+        <button class="btn-round btn-mic" id="mic-btn" title="Speak" onclick="toggleMic()">
+          <i data-lucide="mic" id="mic-icon"></i>
+        </button>
+        <button class="btn-round btn-send" id="send-btn" title="Send" onclick="sendMessage()">
+          <i data-lucide="send"></i>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <div id="chat-section">
-    <div class="topic-bar"><span id="topic-label"></span></div>
-    <div id="messages"></div>
-    <div class="input-bar">
-      <textarea id="msg-input" rows="1" placeholder="Type in English or Portuguese... (Enter to send)"></textarea>
-      <button class="icon-btn" id="mic-btn" title="Speak in English" onclick="toggleMic()">🎤</button>
-      <button class="icon-btn" id="send-btn" title="Send" onclick="sendMessage()" disabled>➤</button>
-    </div>
+  <!-- Error Toast -->
+  <div id="toast">
+    <i data-lucide="alert-circle"></i>
+    <span id="toast-msg">Error message</span>
   </div>
-</div>
 
-<div id="error-toast"></div>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
 
-<script>
-const TOPICS = [
-  { icon:"💼", label:"Job Interviews", prompt:"Let's practice for a job interview in English. Ask me one common question and wait for my answer." },
-  { icon:"✈️", label:"Travel", prompt:"Let's practice travel English — airports, hotels, asking for directions. Create a scenario and start." },
-  { icon:"☕", label:"Daily Life", prompt:"Let's have a casual everyday conversation in English. Start naturally." },
-  { icon:"📧", label:"Business Email", prompt:"Help me practice writing professional emails in English. Give me a situation to respond to." },
-  { icon:"🗣️", label:"Free Talk", prompt:"Let's have a free conversation so I can practice my English naturally. Start with something interesting." },
-  { icon:"📚", label:"Grammar Focus", prompt:"I want to improve my English grammar. Focus on common mistakes Brazilian Portuguese speakers make. Start with one topic." },
-  { icon:"🎬", label:"Movies & Pop", prompt:"Let's talk about movies, series or pop culture in English. Ask me about something." },
-  { icon:"💻", label:"Tech & Work", prompt:"Let's practice English for the tech/IT workplace — meetings, presentations, messages. Start with a scenario." },
-];
+    const TOPICS = [
+      { icon:"briefcase", label:"Job Interviews", prompt:"Let's practice for a job interview in English. Ask me one common question and wait for my answer." },
+      { icon:"plane", label:"Travel", prompt:"Let's practice travel English — airports, hotels, asking for directions. Create a scenario and start." },
+      { icon:"coffee", label:"Daily Life", prompt:"Let's have a casual everyday conversation in English. Start naturally." },
+      { icon:"mail", label:"Business Email", prompt:"Help me practice writing professional emails in English. Give me a situation to respond to." },
+      { icon:"message-square", label:"Free Talk", prompt:"Let's have a free conversation so I can practice my English naturally. Start with something interesting." },
+      { icon:"book-open", label:"Grammar Focus", prompt:"I want to improve my English grammar. Focus on common mistakes Brazilian Portuguese speakers make. Start with one topic." },
+      { icon:"film", label:"Movies & Pop", prompt:"Let's talk about movies, series or pop culture in English. Ask me about something." },
+      { icon:"monitor", label:"Tech & Work", prompt:"Let's practice English for the tech/IT workplace — meetings, presentations, messages. Start with a scenario." },
+    ];
 
-const SYSTEM_PROMPT = `You are IAninha, a warm, encouraging, and patient English conversation teacher. Your student is a Brazilian Portuguese speaker learning English.
+    const SYSTEM_PROMPT = `You are IAninha, a warm, encouraging, and patient English conversation teacher. Your student is a Brazilian Portuguese speaker learning English.
 
 Rules:
 - Always respond in English
@@ -196,239 +431,419 @@ Rules:
 - Keep responses conversational (2-4 sentences unless explaining grammar)
 - Correct mistakes SOFTLY — reuse the correct form naturally without embarrassing the student
 - Occasionally include ONE grammar/vocabulary tip using exactly: [TIP: your tip here]
-- Always ask a follow-up question to keep conversation going
+- Always ask a follow-up question to keep the conversation going
 - Be warm, encouraging, and celebrate effort`;
 
-let groqKey = '', googleKey = '';
-let messages = [];
-let isLoading = false, isListening = false;
-let recognition = null;
+    let groqKey = '', googleKey = '';
+    let messages = [];
+    let isLoading = false, isListening = false;
+    let recognition = null;
+    let activeProvider = 'Groq';
 
-window.onload = () => {
-  const sg = localStorage.getItem('lily_groq');
-  const sk = localStorage.getItem('lily_google');
-  if (sg) document.getElementById('groq-key').value = sg;
-  if (sk) document.getElementById('google-key').value = sk;
-  buildTopics();
-  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-};
+    // Auto-resize textarea
+    const msgInput = document.getElementById('msg-input');
+    const sendBtn = document.getElementById('send-btn');
+    
+    msgInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+      if(this.value.trim().length > 0) {
+        sendBtn.classList.add('active');
+      } else {
+        sendBtn.classList.remove('active');
+      }
+    });
 
-function startApp() {
-  groqKey = document.getElementById('groq-key').value.trim();
-  googleKey = document.getElementById('google-key').value.trim();
-  if (!groqKey && !googleKey) { alert('Por favor, insira pelo menos uma API key.'); return; }
-  localStorage.setItem('lily_groq', groqKey);
-  localStorage.setItem('lily_google', googleKey);
-  document.getElementById('provider-badge').textContent = groqKey ? '⚡ Groq' : '🧠 Google';
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'flex';
-}
+    msgInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if(this.value.trim().length > 0) sendMessage();
+      }
+    });
 
-function buildTopics() {
-  const grid = document.getElementById('topics-grid');
-  TOPICS.forEach(t => {
-    const btn = document.createElement('button');
-    btn.className = 'topic-btn';
-    btn.innerHTML = `<span class="icon">${t.icon}</span><span>${t.label}</span>`;
-    btn.onclick = () => startChat(t.label, t.prompt);
-    grid.appendChild(btn);
-  });
-}
+    window.onload = () => {
+      const sg = localStorage.getItem('ianinha_groq');
+      const sk = localStorage.getItem('ianinha_google');
+      if (sg) document.getElementById('groq-key').value = sg;
+      if (sk) document.getElementById('google-key').value = sk;
+      buildTopics();
+      
+      // Load voices
+      if(window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+      }
+    };
 
-async function startChat(label, prompt) {
-  document.getElementById('topics-section').style.display = 'none';
-  document.getElementById('chat-section').style.display = 'flex';
-  document.getElementById('topic-label').textContent = label;
-  messages = [{ role:'user', content:prompt, hidden:true }];
-  setStatus('IAninha is thinking...');
-  showTyping();
-  const reply = await callAI(messages);
-  hideTyping();
-  messages.push({ role:'assistant', content:reply });
-  appendMessage('assistant', reply);
-  setStatus('Ready to practice');
-  speak(stripTip(reply));
-}
+    function startApp() {
+      groqKey = document.getElementById('groq-key').value.trim();
+      googleKey = document.getElementById('google-key').value.trim();
+      
+      if (!groqKey && !googleKey) {
+        showToast('Please provide at least one API key to continue.');
+        return;
+      }
+      
+      localStorage.setItem('ianinha_groq', groqKey);
+      localStorage.setItem('ianinha_google', googleKey);
+      
+      activeProvider = groqKey ? 'Groq' : 'Google';
+      document.getElementById('provider-name').textContent = activeProvider;
+      
+      document.getElementById('setup-screen').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
+      }, 400);
+    }
 
-async function sendMessage() {
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
-  if (!text || isLoading) return;
-  input.value = ''; input.style.height = 'auto';
-  document.getElementById('send-btn').disabled = true;
-  messages.push({ role:'user', content:text });
-  appendMessage('user', text);
-  isLoading = true; setStatus('IAninha is thinking...'); showTyping();
-  const history = messages.filter(m => !m.hidden).map(m => ({ role:m.role, content:m.content }));
-  const reply = await callAI(history);
-  hideTyping(); isLoading = false;
-  messages.push({ role:'assistant', content:reply });
-  appendMessage('assistant', reply);
-  setStatus('Ready to practice');
-  speak(stripTip(reply));
-}
+    function buildTopics() {
+      const grid = document.getElementById('topics-grid');
+      grid.innerHTML = '';
+      
+      TOPICS.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'topic-card';
+        card.onclick = () => startChat(t.label, t.prompt);
+        
+        card.innerHTML = `
+          <div class="topic-icon">
+            <i data-lucide="${t.icon}"></i>
+          </div>
+          <span>${t.label}</span>
+        `;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
+    }
 
-async function callAI(history) {
-  if (groqKey) {
-    try { return await callGroq(history); } catch(e) { console.warn('Groq failed, trying Google...', e); document.getElementById('provider-badge').textContent = '🧠 Google (fallback)'; }
-  }
-  if (googleKey) {
-    try { return await callGoogle(history); } catch(e) { console.error('Google also failed', e); }
-  }
-  showError('Ambas as APIs falharam. Verifique suas chaves.');
-  return "I'm having trouble connecting. Please check your API keys!";
-}
+    async function startChat(label, prompt) {
+      document.getElementById('topics-section').style.display = 'none';
+      document.getElementById('chat-section').style.display = 'flex';
+      document.getElementById('topic-label').textContent = label;
+      
+      messages = [{ role:'user', content:prompt, hidden:true }];
+      
+      setStatus('Thinking...');
+      showTyping();
+      isLoading = true;
+      
+      const reply = await callAI(messages);
+      
+      hideTyping();
+      isLoading = false;
+      
+      messages.push({ role:'assistant', content:reply });
+      appendMessage('assistant', reply);
+      setStatus('Ready to practice');
+      
+      speak(stripTip(reply));
+    }
 
-async function callGroq(history) {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
-    body: JSON.stringify({ model:'llama-3.3-70b-versatile', messages:[{ role:'system', content:SYSTEM_PROMPT }, ...history], max_tokens:600, temperature:0.8 })
-  });
-  if (!res.ok) throw new Error(`Groq ${res.status}`);
-  const d = await res.json();
-  return d.choices[0].message.content;
-}
+    async function sendMessage() {
+      if (isLoading) return;
+      const text = msgInput.value.trim();
+      if (!text) return;
+      
+      msgInput.value = '';
+      msgInput.style.height = 'auto';
+      sendBtn.classList.remove('active');
+      
+      messages.push({ role:'user', content:text });
+      appendMessage('user', text);
+      
+      isLoading = true;
+      setStatus('Thinking...');
+      showTyping();
+      
+      const history = messages.filter(m => !m.hidden).map(m => ({ role:m.role, content:m.content }));
+      
+      const reply = await callAI(history);
+      
+      hideTyping();
+      isLoading = false;
+      
+      messages.push({ role:'assistant', content:reply });
+      appendMessage('assistant', reply);
+      setStatus('Ready to practice');
+      
+      speak(stripTip(reply));
+    }
 
-async function callGoogle(history) {
-  const contents = history.map(m => ({ role: m.role==='assistant'?'model':'user', parts:[{ text:m.content }] }));
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleKey}`, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify({ system_instruction:{ parts:[{ text:SYSTEM_PROMPT }] }, contents, generationConfig:{ maxOutputTokens:600, temperature:0.8 } })
-  });
-  if (!res.ok) throw new Error(`Google ${res.status}`);
-  const d = await res.json();
-  return d.candidates[0].content.parts[0].text;
-}
+    async function callAI(history) {
+      if (groqKey) {
+        try {
+          return await callGroq(history);
+        } catch(e) {
+          console.warn('Groq failed, trying Google...', e);
+          if (googleKey) {
+            activeProvider = 'Google (fallback)';
+            document.getElementById('provider-name').textContent = activeProvider;
+            return await callGoogle(history);
+          } else {
+             showToast('Groq API error. Check CORS or invalid key.');
+             return "I'm having connection issues with the Groq API. Check your keys or network.";
+          }
+        }
+      }
+      
+      if (googleKey) {
+        try {
+          return await callGoogle(history);
+        } catch(e) {
+          console.error('Google failed', e);
+          showToast('Google API error. Please check your key.');
+          return "I'm having connection issues with the Google API.";
+        }
+      }
+      
+      return "No API keys configured properly!";
+    }
 
-function appendMessage(role, content) {
-  const msgs = document.getElementById('messages');
-  const isUser = role === 'user';
-  let mainText = content, tip = null;
-  if (!isUser) {
-    const m = content.match(/\[TIP:\s*(.*?)\]/s);
-    if (m) { tip = m[1].trim(); mainText = content.replace(/\[TIP:\s*.*?\]/s,'').trim(); }
-  }
-  const row = document.createElement('div');
-  row.className = `msg-row ${isUser?'user':''}`;
-  const av = document.createElement('div');
-  av.className = `msg-avatar ${isUser?'user-av':'lily'}`;
-  av.textContent = isUser ? '🙋‍♀️' : '👩‍🏫';
-  const col = document.createElement('div');
-  col.className = 'msg-content';
-  const bubble = document.createElement('div');
-  bubble.className = `bubble ${isUser?'user-bubble':'lily-bubble'}`;
-  bubble.textContent = mainText;
-  col.appendChild(bubble);
-  if (tip) {
-    const tipEl = document.createElement('div');
-    tipEl.className = 'tip-box';
-    tipEl.innerHTML = `<span>💡</span><span>${tip}</span>`;
-    col.appendChild(tipEl);
-  }
-  if (!isUser) {
-    const lb = document.createElement('button');
-    lb.className = 'listen-btn';
-    lb.textContent = '🔊 Listen';
-    lb.onclick = () => speak(mainText);
-    col.appendChild(lb);
-  }
-  row.appendChild(av); row.appendChild(col);
-  msgs.appendChild(row);
-  msgs.scrollTop = msgs.scrollHeight;
-}
+    async function callGroq(history) {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
+        body: JSON.stringify({ 
+          model:'llama-3.3-70b-versatile', 
+          messages:[{ role:'system', content:SYSTEM_PROMPT }, ...history], 
+          max_tokens:600, 
+          temperature:0.7 
+        })
+      });
+      if (!res.ok) throw new Error(`Groq HTTP ${res.status}`);
+      const d = await res.json();
+      return d.choices[0].message.content;
+    }
 
-let typingEl = null;
-function showTyping() {
-  const msgs = document.getElementById('messages');
-  const row = document.createElement('div');
-  row.className = 'msg-row'; row.id = 'typing-row';
-  const av = document.createElement('div');
-  av.className = 'msg-avatar lily'; av.textContent = '👩‍🏫';
-  const dots = document.createElement('div');
-  dots.className = 'typing-dots';
-  dots.innerHTML = '<span></span><span></span><span></span>';
-  row.appendChild(av); row.appendChild(dots);
-  msgs.appendChild(row);
-  msgs.scrollTop = msgs.scrollHeight;
-  typingEl = row;
-}
-function hideTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
+    async function callGoogle(history) {
+      // Gemini strict alternating roles workaround: Merge contiguous roles or handle gracefully.
+      // Basic mapping: user->user, assistant->model
+      const contents = history.map(m => ({ 
+        role: m.role === 'assistant' ? 'model' : 'user', 
+        parts:[{ text: m.content }] 
+      }));
+      
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleKey}`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ 
+          system_instruction:{ parts:[{ text:SYSTEM_PROMPT }] }, 
+          contents, 
+          generationConfig:{ maxOutputTokens:600, temperature:0.7 } 
+        })
+      });
+      if (!res.ok) throw new Error(`Google HTTP ${res.status}`);
+      const d = await res.json();
+      if(!d.candidates || d.candidates.length === 0) return "Oops, no response from Gemini.";
+      return d.candidates[0].content.parts[0].text;
+    }
 
-function speak(text) {
-  if (!text) return;
-  const synth = window.speechSynthesis;
-  synth.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'en-US'; utt.rate = 0.9; utt.pitch = 1.05;
-  const voices = synth.getVoices();
-  const preferred = voices.find(v => v.lang.startsWith('en-US') && (v.name.includes('Samantha') || v.name.includes('Google US English'))) || voices.find(v => v.lang.startsWith('en'));
-  if (preferred) utt.voice = preferred;
-  utt.onstart = () => { document.getElementById('lily-avatar').classList.add('speaking'); setStatus('🔊 Speaking...'); };
-  utt.onend = () => { document.getElementById('lily-avatar').classList.remove('speaking'); setStatus('Ready to practice'); };
-  synth.speak(utt);
-}
+    function appendMessage(role, content) {
+      const msgs = document.getElementById('messages');
+      const isUser = role === 'user';
+      
+      let mainText = content, tip = null;
+      if (!isUser) {
+        const m = content.match(/\[TIP:\s*(.*?)\]/s);
+        if (m) {
+          tip = m[1].trim();
+          mainText = content.replace(/\[TIP:\s*.*?\]/s,'').trim();
+        }
+      }
+      
+      const group = document.createElement('div');
+      group.className = `msg-group ${isUser ? 'user' : 'ai'}`;
+      
+      const av = document.createElement('div');
+      av.className = 'msg-avatar';
+      av.innerHTML = isUser ? '<i data-lucide="user"></i>' : '<i data-lucide="bot"></i>';
+      
+      const col = document.createElement('div');
+      col.className = 'msg-content';
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = mainText;
+      col.appendChild(bubble);
+      
+      if (tip) {
+        const tipEl = document.createElement('div');
+        tipEl.className = 'tip-box';
+        tipEl.innerHTML = `<i data-lucide="lightbulb"></i><div class="tip-content">${tip}</div>`;
+        col.appendChild(tipEl);
+      }
+      
+      if (!isUser) {
+        const actionRow = document.createElement('div');
+        actionRow.className = 'action-row';
+        
+        const lb = document.createElement('button');
+        lb.className = 'btn-small';
+        lb.innerHTML = '<i data-lucide="volume-2"></i> Listen';
+        lb.onclick = () => speak(mainText);
+        
+        actionRow.appendChild(lb);
+        col.appendChild(actionRow);
+      }
+      
+      group.appendChild(av);
+      group.appendChild(col);
+      msgs.appendChild(group);
+      
+      lucide.createIcons();
+      scrollToBottom();
+    }
 
-function stripTip(t) { return t.replace(/\[TIP:\s*.*?\]/s,'').trim(); }
+    let typingEl = null;
+    function showTyping() {
+      const msgs = document.getElementById('messages');
+      const group = document.createElement('div');
+      group.className = 'msg-group ai';
+      group.id = 'typing-indicator-wrapper';
+      
+      const av = document.createElement('div');
+      av.className = 'msg-avatar';
+      av.innerHTML = '<i data-lucide="bot"></i>';
+      
+      const dots = document.createElement('div');
+      dots.className = 'typing-indicator';
+      dots.innerHTML = '<span></span><span></span><span></span>';
+      
+      group.appendChild(av);
+      group.appendChild(dots);
+      msgs.appendChild(group);
+      
+      lucide.createIcons();
+      typingEl = group;
+      scrollToBottom();
+    }
+    
+    function hideTyping() {
+      if (typingEl) { typingEl.remove(); typingEl = null; }
+    }
 
-function toggleMic() { isListening ? stopMic() : startMic(); }
-function startMic() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { showError('Speech recognition not supported. Use Chrome.'); return; }
-  recognition = new SR();
-  recognition.lang = 'en-US'; recognition.interimResults = false;
-  recognition.onresult = e => {
-    const t = e.results[0][0].transcript;
-    const inp = document.getElementById('msg-input');
-    inp.value += (inp.value ? ' ' : '') + t;
-    inp.dispatchEvent(new Event('input'));
-    stopMic();
-  };
-  recognition.onerror = () => stopMic();
-  recognition.onend = () => stopMic();
-  recognition.start();
-  isListening = true;
-  document.getElementById('mic-btn').classList.add('listening');
-  document.getElementById('mic-btn').textContent = '⏹';
-  setStatus('🎤 Listening...');
-}
-function stopMic() {
-  if (recognition) { recognition.stop(); recognition = null; }
-  isListening = false;
-  document.getElementById('mic-btn').classList.remove('listening');
-  document.getElementById('mic-btn').textContent = '🎤';
-  setStatus('Ready to practice');
-}
+    function scrollToBottom() {
+      const msgs = document.getElementById('messages');
+      msgs.scrollTop = msgs.scrollHeight;
+    }
 
-function setStatus(t) { document.getElementById('status-text').textContent = t; }
-function showError(msg) {
-  const toast = document.getElementById('error-toast');
-  toast.textContent = msg; toast.style.display = 'block';
-  setTimeout(() => toast.style.display = 'none', 4000);
-}
-function resetChat() {
-  window.speechSynthesis.cancel();
-  messages = [];
-  document.getElementById('messages').innerHTML = '';
-  document.getElementById('chat-section').style.display = 'none';
-  document.getElementById('topics-section').style.display = 'flex';
-  document.getElementById('msg-input').value = '';
-  setStatus('Ready to practice');
-}
+    function speak(text) {
+      if (!text || !window.speechSynthesis) return;
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'en-US';
+      utt.rate = 0.95;
+      utt.pitch = 1.0;
+      
+      const voices = synth.getVoices();
+      const preferred = voices.find(v => v.lang.startsWith('en-US') && (v.name.includes('Samantha') || v.name.includes('Google US English'))) 
+                     || voices.find(v => v.lang.startsWith('en'));
+      if (preferred) utt.voice = preferred;
+      
+      utt.onstart = () => { 
+        document.getElementById('lily-avatar').classList.add('speaking');
+        setStatus('Speaking...'); 
+      };
+      utt.onend = () => { 
+        document.getElementById('lily-avatar').classList.remove('speaking');
+        setStatus('Ready to practice'); 
+      };
+      utt.onerror = () => {
+        document.getElementById('lily-avatar').classList.remove('speaking');
+        setStatus('Ready to practice');
+      };
+      
+      synth.speak(utt);
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('msg-input');
-  const sendBtn = document.getElementById('send-btn');
-  input.addEventListener('input', () => {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 100) + 'px';
-    sendBtn.disabled = !input.value.trim();
-  });
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
-});
-</script>
+    function stripTip(t) {
+      return t.replace(/\[TIP:\s*.*?\]/s,'').trim();
+    }
+
+    function toggleMic() {
+      isListening ? stopMic() : startMic();
+    }
+    
+    function startMic() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { 
+        showToast('Speech recognition is not supported in this browser. Try Chrome.');
+        return; 
+      }
+      
+      try {
+        recognition = new SR();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        
+        recognition.onstart = () => {
+          isListening = true;
+          document.getElementById('mic-btn').classList.add('listening');
+          document.getElementById('mic-icon').setAttribute('data-lucide', 'square');
+          lucide.createIcons();
+          setStatus('Listening...');
+        };
+        
+        recognition.onresult = e => {
+          const t = e.results[0][0].transcript;
+          msgInput.value += (msgInput.value ? ' ' : '') + t;
+          msgInput.dispatchEvent(new Event('input')); // Trigger resize and button state
+        };
+        
+        recognition.onerror = e => {
+          console.error('Speech recognition error', e);
+          if(e.error !== 'no-speech') showToast('Microphone error: ' + e.error);
+          stopMic();
+        };
+        
+        recognition.onend = () => {
+          stopMic();
+        };
+        
+        recognition.start();
+      } catch (e) {
+        console.error(e);
+        stopMic();
+      }
+    }
+    
+    function stopMic() {
+      if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+        recognition = null;
+      }
+      isListening = false;
+      const micBtn = document.getElementById('mic-btn');
+      micBtn.classList.remove('listening');
+      document.getElementById('mic-icon').setAttribute('data-lucide', 'mic');
+      lucide.createIcons();
+      setStatus('Ready to practice');
+    }
+
+    function setStatus(t) {
+      document.getElementById('status-text').textContent = t;
+    }
+    
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+    
+    function resetChat() {
+      if(window.speechSynthesis) window.speechSynthesis.cancel();
+      stopMic();
+      messages = [];
+      document.getElementById('messages').innerHTML = '';
+      document.getElementById('chat-section').style.display = 'none';
+      document.getElementById('topics-section').style.display = 'block';
+      msgInput.value = '';
+      msgInput.dispatchEvent(new Event('input'));
+      setStatus('Ready to practice');
+    }
+  </script>
 </body>
 </html>
