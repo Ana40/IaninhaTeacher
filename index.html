@@ -968,11 +968,14 @@ Rules:
     
     function resetChat() {
       if(window.speechSynthesis) window.speechSynthesis.cancel();
-      stopMic();
+      if(isRecording) toggleMic();
       messages = [];
       document.getElementById('messages').innerHTML = '';
       document.getElementById('chat-section').style.display = 'none';
       document.getElementById('topics-section').style.display = 'block';
+      document.getElementById('app-screen').style.display = 'none';
+      document.getElementById('setup-screen').style.display = 'flex';
+      document.getElementById('setup-screen').style.opacity = '1';
       msgInput.value = '';
       msgInput.dispatchEvent(new Event('input'));
       setStatus('Ready to practice');
