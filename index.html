@@ -334,6 +334,19 @@
       #app-screen { border: none; }
     }
 
+    .teacher-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+    .teacher-option { flex: 1; cursor: pointer; }
+    .teacher-option input { display: none; }
+    .teacher-box {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      padding: 12px; border-radius: 12px; text-align: center; font-weight: 500;
+      color: var(--text-muted); transition: all 0.2s;
+    }
+    .teacher-option input:checked + .teacher-box {
+      background: rgba(139, 92, 246, 0.1); border-color: var(--primary);
+      color: var(--primary);
+    }
+
     .author-signature {
       text-align: center;
       margin-top: 2rem;
@@ -380,6 +393,20 @@
         </div>
         <h1>IAninha Teacher</h1>
         <p>Your AI-powered English Tutor</p>
+      </div>
+      
+      <div class="input-group">
+        <label>Choose your Teacher</label>
+        <div class="teacher-selector">
+          <label class="teacher-option">
+            <input type="radio" name="teacher" value="ianinha" checked>
+            <div class="teacher-box">👩‍🏫 IAninha</div>
+          </label>
+          <label class="teacher-option">
+            <input type="radio" name="teacher" value="ialfred">
+            <div class="teacher-box">👨‍🏫 IAlfred</div>
+          </label>
+        </div>
       </div>
       
       <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
@@ -452,7 +479,7 @@
           </div>
         </div>
         <div class="header-text">
-          <h2>IAninha</h2>
+          <h2 id="teacher-title-header">IAninha</h2>
           <div class="header-status">
             <div class="status-dot"></div>
             <span id="status-text">Ready to practice</span>
@@ -472,7 +499,7 @@
     <!-- Topics Section -->
     <div id="topics-section">
       <div class="topics-header">
-        <h3>Hi! I'm IAninha 👋</h3>
+        <h3 id="teacher-greeting">Hi! I'm IAninha 👋</h3>
         <p>Choose a topic to start practicing your English</p>
       </div>
       <div class="topics-grid" id="topics-grid">
@@ -525,7 +552,7 @@
       { icon:"monitor", label:"Tech & Work", prompt:"Let's practice English for the tech/IT workplace — meetings, presentations, messages. Start with a scenario." },
     ];
 
-    const SYSTEM_PROMPT = `You are IAninha, a warm, encouraging, and patient English conversation teacher. Your student is a Brazilian Portuguese speaker learning English.
+    const getSystemPrompt = () => `You are ${teacherName}, a warm, encouraging, and patient English conversation teacher. Your student is a Brazilian Portuguese speaker learning English.
 
 Rules:
 - Always respond in English
@@ -544,6 +571,7 @@ Rules:
     let mediaRecorder = null;
     let audioChunks = [];
     let activeProvider = 'Groq';
+    let teacherName = 'IAninha';
 
     // Voice Loading Logic for Chrome
     let systemVoices = [];
@@ -598,6 +626,15 @@ Rules:
     };
 
     function startApp() {
+      const teacherChoice = document.querySelector('input[name="teacher"]:checked').value;
+      if (teacherChoice === 'ialfred') {
+        teacherName = 'IAlfred';
+      } else {
+        teacherName = 'IAninha';
+      }
+      
+      document.getElementById('teacher-title-header').textContent = teacherName;
+      document.getElementById('teacher-greeting').textContent = `Hi! I'm ${teacherName} 👋`;
       groqKey = document.getElementById('groq-key').value.trim();
       googleKey = document.getElementById('google-key').value.trim();
       openrouterKey = document.getElementById('openrouter-key').value.trim();
@@ -768,7 +805,7 @@ Rules:
         headers: headers,
         body: JSON.stringify({ 
           model: customModel || 'gpt-3.5-turbo', 
-          messages: [{ role:'system', content:SYSTEM_PROMPT }, ...cleanHistory],
+          messages: [{ role:'system', content:getSystemPrompt() }, ...cleanHistory],
           temperature: 0.7 
         })
       });
@@ -783,10 +820,10 @@ Rules:
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
         body: JSON.stringify({ 
-          model:'openai/gpt-oss-120b', 
-          messages:[{ role:'system', content:SYSTEM_PROMPT }, ...cleanHistory], 
-          max_completion_tokens:1024, 
-          temperature:0.7 
+          model: 'openai/gpt-oss-120b', 
+          messages: [{ role:'system', content:getSystemPrompt() }, ...cleanHistory],
+          temperature: 0.7,
+          max_completion_tokens: 8192
         })
       });
       if (!res.ok) throw new Error(`Groq HTTP ${res.status}`);
@@ -805,10 +842,9 @@ Rules:
           'X-Title': 'IAninha Teacher'
         },
         body: JSON.stringify({ 
-          model:'meta-llama/llama-3.3-70b-instruct:free', 
-          messages:[{ role:'system', content:SYSTEM_PROMPT }, ...cleanHistory], 
-          max_tokens:600, 
-          temperature:0.7 
+          model: 'meta-llama/llama-3.3-70b-instruct', 
+          messages: [{ role:'system', content:getSystemPrompt() }, ...cleanHistory],
+          temperature: 0.7 
         })
       });
       if (!res.ok) throw new Error(`OpenRouter HTTP ${res.status}`);
@@ -825,7 +861,7 @@ Rules:
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({ 
-          system_instruction:{ parts:[{ text:SYSTEM_PROMPT }] }, 
+          system_instruction:{ parts:[{ text:getSystemPrompt() }] }, 
           contents, 
           generationConfig:{ maxOutputTokens:600, temperature:0.7 } 
         })
@@ -914,26 +950,46 @@ Rules:
       // Try to reload voices just in case it was missed
       if (systemVoices.length === 0) loadVoices();
       
-      let femaleVoice = systemVoices.find(v => v.lang.startsWith('en') && 
-        (v.name.toLowerCase().includes('female') || 
-         v.name.toLowerCase().includes('zira') || 
-         v.name.toLowerCase().includes('samantha') || 
-         v.name.toLowerCase().includes('victoria') || 
-         v.name.toLowerCase().includes('jenny') || 
-         v.name.includes('Google US English')));
-         
-      if (!femaleVoice) {
-        // Fallback to any english voice that is NOT David or Mark
-        femaleVoice = systemVoices.find(v => v.lang.startsWith('en') && 
-          !v.name.toLowerCase().includes('david') && 
-          !v.name.toLowerCase().includes('mark'));
+      let isFemale = (teacherName === 'IAninha');
+      let selectedVoice = null;
+      
+      if (isFemale) {
+        selectedVoice = systemVoices.find(v => v.lang.startsWith('en') && 
+          (v.name.toLowerCase().includes('female') || 
+           v.name.toLowerCase().includes('zira') || 
+           v.name.toLowerCase().includes('samantha') || 
+           v.name.toLowerCase().includes('victoria') || 
+           v.name.toLowerCase().includes('jenny') || 
+           v.name.includes('Google US English')));
+           
+        if (!selectedVoice) {
+          selectedVoice = systemVoices.find(v => v.lang.startsWith('en') && 
+            !v.name.toLowerCase().includes('david') && 
+            !v.name.toLowerCase().includes('mark') && 
+            !v.name.toLowerCase().includes('male'));
+        }
+      } else {
+        selectedVoice = systemVoices.find(v => v.lang.startsWith('en') && 
+          (v.name.toLowerCase().includes('male') || 
+           v.name.toLowerCase().includes('david') || 
+           v.name.toLowerCase().includes('mark') || 
+           v.name.toLowerCase().includes('george') || 
+           v.name.toLowerCase().includes('andrew') || 
+           v.name.includes('Google UK English Male')));
+           
+        if (!selectedVoice) {
+          selectedVoice = systemVoices.find(v => v.lang.startsWith('en') && 
+            !v.name.toLowerCase().includes('zira') && 
+            !v.name.toLowerCase().includes('samantha') && 
+            !v.name.toLowerCase().includes('female'));
+        }
       }
       
-      if (!femaleVoice) femaleVoice = systemVoices.find(v => v.lang.startsWith('en')); // final fallback
+      if (!selectedVoice) selectedVoice = systemVoices.find(v => v.lang.startsWith('en')); // final fallback
       
-      if (femaleVoice) {
-        utt.voice = femaleVoice;
-        utt.lang = femaleVoice.lang;
+      if (selectedVoice) {
+        utt.voice = selectedVoice;
+        utt.lang = selectedVoice.lang;
       }
       
       utt.onstart = () => document.getElementById('lily-avatar').classList.add('speaking');
