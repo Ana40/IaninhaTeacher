@@ -117,18 +117,54 @@
     }
     .header-info { display: flex; align-items: center; gap: 16px; }
     .header-avatar {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      width: 56px; height: 56px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
       position: relative; transition: all 0.3s;
     }
     .header-avatar.speaking {
       box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.3), 0 0 20px rgba(139, 92, 246, 0.8);
-      animation: pulse-avatar 1.5s infinite;
     }
-    @keyframes pulse-avatar { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-    .header-avatar i { color: #fff; width: 24px; height: 24px; }
+    
+    /* 2D Animated Avatar */
+    .teacher-face {
+      width: 100%; height: 100%; border-radius: 50%; position: relative;
+      background: linear-gradient(135deg, #fde047, #f59e0b);
+      overflow: hidden; border: 2px solid #fff;
+    }
+    .face-eye {
+      width: 6px; height: 8px; background: #1e293b; border-radius: 50%;
+      position: absolute; top: 40%; animation: blink-eyes 4s infinite;
+    }
+    .face-eye.left { left: 30%; }
+    .face-eye.right { right: 30%; }
+    .face-blush {
+      width: 10px; height: 5px; background: #ef4444; border-radius: 50%;
+      position: absolute; top: 52%; opacity: 0.4;
+    }
+    .face-blush.left { left: 18%; }
+    .face-blush.right { right: 18%; }
+    .face-mouth {
+      width: 16px; height: 4px; background: #1e293b; border-radius: 10px;
+      position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%);
+      transition: all 0.1s;
+    }
+    
+    .header-avatar.speaking .face-mouth {
+      animation: talk-mouth 0.3s infinite alternate;
+    }
+
+    @keyframes talk-mouth {
+      0% { height: 4px; width: 16px; border-radius: 10px; }
+      40% { height: 14px; width: 12px; border-radius: 50%; }
+      80% { height: 8px; width: 18px; border-radius: 10px; }
+      100% { height: 12px; width: 10px; border-radius: 40%; }
+    }
+    @keyframes blink-eyes {
+      0%, 94%, 100% { transform: scaleY(1); }
+      97% { transform: scaleY(0.1); }
+    }
+
     .header-text h2 { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
     .header-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--secondary); }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--secondary); animation: blink 2s infinite; }
@@ -347,7 +383,13 @@
     <header>
       <div class="header-info">
         <div class="header-avatar" id="lily-avatar">
-          <i data-lucide="bot"></i>
+          <div class="teacher-face">
+            <div class="face-eye left"></div>
+            <div class="face-eye right"></div>
+            <div class="face-blush left"></div>
+            <div class="face-blush right"></div>
+            <div class="face-mouth"></div>
+          </div>
         </div>
         <div class="header-text">
           <h2>IAninha</h2>
