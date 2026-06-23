@@ -692,7 +692,7 @@ Rules:
         method:'POST',
         headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
         body: JSON.stringify({ 
-          model:'llama-3.3-70b-versatile', 
+          model:'llama3-8b-8192', 
           messages:[{ role:'system', content:SYSTEM_PROMPT }, ...history], 
           max_tokens:600, 
           temperature:0.7 
