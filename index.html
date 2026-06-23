@@ -853,10 +853,22 @@ Rules:
             try {
               const formData = new FormData();
               formData.append('file', audioBlob, 'audio.webm');
-              formData.append('model', 'whisper-large-v3-turbo');
+              formData.append('model', 'whisper-large-v3');
+              formData.append('prompt', 'Transcribe the audio accurately. Do not repeat words. Ignore silence.');
+              formData.append('temperature', '0');
               const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { 'Authorization': `Bearer ${groqKey}` }, body: formData });
               const data = await res.json();
-              if (data.text) { msgInput.value = data.text; msgInput.dispatchEvent(new Event('input')); sendMessage(); }
+              
+              if (data.text) { 
+                let finalTxt = data.text.trim();
+                // Basic cleanup for whisper repetitive hallucinations
+                if (finalTxt.length > 50 && finalTxt.substring(0, 20) === finalTxt.substring(20, 40)) {
+                   finalTxt = finalTxt.substring(0, finalTxt.length / 2); // just a simple fallback
+                }
+                msgInput.value = finalTxt; 
+                msgInput.dispatchEvent(new Event('input')); 
+                if (finalTxt) sendMessage(); 
+              }
             } catch (e) { showToast('Transcription failed.'); } finally { hideTyping(); }
           };
           mediaRecorder.start();
