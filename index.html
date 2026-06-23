@@ -545,6 +545,20 @@ Rules:
     let audioChunks = [];
     let activeProvider = 'Groq';
 
+    // Voice Loading Logic for Chrome
+    let systemVoices = [];
+    function loadVoices() {
+      if (window.speechSynthesis) {
+        systemVoices = window.speechSynthesis.getVoices();
+      }
+    }
+    if (window.speechSynthesis) {
+      loadVoices();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+    }
+
     // Auto-resize textarea
     const msgInput = document.getElementById('msg-input');
     const sendBtn = document.getElementById('send-btn');
@@ -897,10 +911,30 @@ Rules:
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = 'en-US';
       
-      const voices = window.speechSynthesis.getVoices();
-      let femaleVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Google US English')));
-      if (!femaleVoice) femaleVoice = voices.find(v => v.lang.startsWith('en'));
-      if (femaleVoice) utt.voice = femaleVoice;
+      // Try to reload voices just in case it was missed
+      if (systemVoices.length === 0) loadVoices();
+      
+      let femaleVoice = systemVoices.find(v => v.lang.startsWith('en') && 
+        (v.name.toLowerCase().includes('female') || 
+         v.name.toLowerCase().includes('zira') || 
+         v.name.toLowerCase().includes('samantha') || 
+         v.name.toLowerCase().includes('victoria') || 
+         v.name.toLowerCase().includes('jenny') || 
+         v.name.includes('Google US English')));
+         
+      if (!femaleVoice) {
+        // Fallback to any english voice that is NOT David or Mark
+        femaleVoice = systemVoices.find(v => v.lang.startsWith('en') && 
+          !v.name.toLowerCase().includes('david') && 
+          !v.name.toLowerCase().includes('mark'));
+      }
+      
+      if (!femaleVoice) femaleVoice = systemVoices.find(v => v.lang.startsWith('en')); // final fallback
+      
+      if (femaleVoice) {
+        utt.voice = femaleVoice;
+        utt.lang = femaleVoice.lang;
+      }
       
       utt.onstart = () => document.getElementById('lily-avatar').classList.add('speaking');
       utt.onend = () => document.getElementById('lily-avatar').classList.remove('speaking');
