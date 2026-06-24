@@ -814,9 +814,12 @@ Rules:
       const headers = { 'Content-Type': 'application/json' };
       if (customKey) headers['Authorization'] = `Bearer ${customKey}`;
       
-      let finalUrl = customUrl;
-      if (!finalUrl.endsWith('/v1/chat/completions')) {
-        finalUrl = finalUrl.replace(/\/+$/, '') + '/v1/chat/completions';
+      let finalUrl = customUrl.replace(/\/+$/, '');
+      if (!finalUrl.endsWith('/chat/completions')) {
+        if (!finalUrl.endsWith('/v1')) {
+          finalUrl += '/v1';
+        }
+        finalUrl += '/chat/completions';
       }
 
       const res = await fetch(finalUrl, {
