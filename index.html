@@ -145,6 +145,20 @@
     .btn-icon-text:hover { background: rgba(255,255,255,0.1); color: var(--text); }
     .btn-icon-text i { width: 14px; height: 14px; }
 
+    .model-selector-wrapper {
+      display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); padding: 6px 12px; border-radius: 10px;
+      color: var(--text-muted); font-size: 13px; font-weight: 500; transition: all 0.2s;
+    }
+    .model-selector-wrapper:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .model-selector-wrapper i { width: 14px; height: 14px; color: var(--primary); }
+    .model-dropdown {
+      background: transparent; border: none; color: inherit; font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 500; outline: none; cursor: pointer;
+      appearance: none; -webkit-appearance: none; padding-right: 4px;
+    }
+    .model-dropdown option { background: var(--surface); color: var(--text); }
+
     /* Topics Section */
     #topics-section { flex: 1; overflow-y: auto; padding: 40px 24px; }
     .topics-header { text-align: center; margin-bottom: 40px; }
@@ -426,18 +440,18 @@
       </div>
 
       <div class="input-group">
-        <label>Corporate/Custom API (OpenAI Compatible) <span class="badge" style="background:rgba(71,85,105,0.4); border-color:#64748b; color:#cbd5e1;">Enterprise</span></label>
+        <label>Local Server URL (Proxy/Ollama) <span class="badge" style="background:rgba(71,85,105,0.4); border-color:#64748b; color:#cbd5e1;">Custom</span></label>
         <div class="input-wrapper" style="margin-bottom: 8px;">
           <i data-lucide="link"></i>
-          <input type="text" id="custom-url" class="setup-input" placeholder="https://.../v1/chat/completions" autocomplete="off" />
+          <input type="text" id="custom-url" class="setup-input" placeholder="http://localhost:11434" autocomplete="off" />
         </div>
         <div class="input-wrapper" style="margin-bottom: 8px;">
           <i data-lucide="cpu"></i>
-          <input type="text" id="custom-model" class="setup-input" placeholder="Model name (e.g. gpt-4)" autocomplete="off" />
+          <input type="text" id="custom-model" class="setup-input" placeholder="Nome do Modelo Local (e.g. llama3)" autocomplete="off" />
         </div>
         <div class="input-wrapper">
           <i data-lucide="key"></i>
-          <input type="password" id="custom-key" class="setup-input" placeholder="Token (optional)" autocomplete="off" />
+          <input type="password" id="custom-key" class="setup-input" placeholder="OpenAI API Key / Token (opcional)" autocomplete="off" />
         </div>
       </div>
       
@@ -468,9 +482,12 @@
         </div>
       </div>
       <div class="header-actions">
-        <span class="btn-icon-text" id="provider-badge" title="Current AI Provider">
-          <i data-lucide="zap"></i> <span id="provider-name">Groq</span>
-        </span>
+        <div class="model-selector-wrapper" title="Current AI Provider">
+          <i data-lucide="zap"></i>
+          <select id="model-selector" class="model-dropdown" onchange="changeModel()">
+            <!-- Dynamic options -->
+          </select>
+        </div>
         <button class="btn-icon-text" onclick="resetChat()" title="Start New Conversation">
           <i data-lucide="refresh-cw"></i> <span>Reset</span>
         </button>
@@ -637,12 +654,40 @@ Rules:
       localStorage.setItem('ianinha_custom_model', customModel);
       localStorage.setItem('ianinha_custom_key', customKey);
       
-      if (customUrl) activeProvider = 'Custom API';
-      else if (openrouterKey) activeProvider = 'OpenRouter';
-      else if (googleKey) activeProvider = 'Google';
-      else if (groqKey) activeProvider = 'Groq';
+      const modelSelector = document.getElementById('model-selector');
+      modelSelector.innerHTML = '';
       
-      document.getElementById('provider-name').textContent = activeProvider;
+      if (customUrl && customModel) {
+        const opt = document.createElement('option');
+        opt.value = 'custom';
+        opt.textContent = `⚙️ Customizado (Config): ${customModel}`;
+        modelSelector.appendChild(opt);
+      }
+      if (openrouterKey) {
+        const opt = document.createElement('option');
+        opt.value = 'openrouter';
+        opt.textContent = `🌐 OpenRouter (Llama 3.3)`;
+        modelSelector.appendChild(opt);
+      }
+      if (groqKey) {
+        const opt = document.createElement('option');
+        opt.value = 'groq';
+        opt.textContent = `⚡ Groq (GPT-OSS 120B)`;
+        modelSelector.appendChild(opt);
+      }
+      if (googleKey) {
+        const opt = document.createElement('option');
+        opt.value = 'google';
+        opt.textContent = `🔵 Google (Gemini 2.0)`;
+        modelSelector.appendChild(opt);
+      }
+      
+      if (modelSelector.options.length > 0) {
+        modelSelector.selectedIndex = 0;
+        activeProvider = modelSelector.value;
+      } else {
+        activeProvider = '';
+      }
       
       document.getElementById('setup-screen').style.opacity = '0';
       setTimeout(() => {
@@ -730,52 +775,38 @@ Rules:
       }
     }
 
-    async function callAI(history) {
-      let errors = [];
-      
-      if (customUrl) {
-        try {
-          activeProvider = 'Corporate API';
-          document.getElementById('provider-name').textContent = activeProvider;
-          return await callCustom(history);
-        } catch(e) {
-          console.warn('Custom API failed:', e);
-          errors.push("Corporate API: " + e.message);
-        }
-      }
+    function changeModel() {
+      activeProvider = document.getElementById('model-selector').value;
+    }
 
-      if (groqKey) {
-        try {
-          activeProvider = 'Groq';
-          document.getElementById('provider-name').textContent = activeProvider;
-          return await callGroq(history);
-        } catch(e) {
-          console.warn('Groq failed:', e);
-          errors.push("Groq: " + e.message);
-        }
+    async function callAI(history) {
+      if (activeProvider === 'custom') {
+        try { return await callCustom(history); } 
+        catch(e) { throw new Error("Local/Custom API: " + e.message); }
       }
-      if (openrouterKey) {
-        try {
-          activeProvider = 'OpenRouter';
-          document.getElementById('provider-name').textContent = activeProvider;
-          return await callOpenRouter(history);
-        } catch(e) {
-          console.warn('OpenRouter failed:', e);
-          errors.push("OpenRouter: " + e.message);
-        }
+      if (activeProvider === 'openrouter') {
+        try { return await callOpenRouter(history); } 
+        catch(e) { throw new Error("OpenRouter: " + e.message); }
       }
-      if (googleKey) {
-        try {
-          activeProvider = 'Google';
-          document.getElementById('provider-name').textContent = activeProvider;
-          return await callGoogle(history);
-        } catch(e) {
-          console.warn('Google failed:', e);
-          errors.push("Google: " + e.message);
-        }
+      if (activeProvider === 'groq') {
+        try { return await callGroq(history); } 
+        catch(e) { throw new Error("Groq: " + e.message); }
       }
-      if (errors.length === 0) errors.push("No APIs configured.");
-      throw new Error(errors.join(" | "));
+      if (activeProvider === 'google') {
+        try { return await callGoogle(history); } 
+        catch(e) { throw new Error("Google: " + e.message); }
+      }
+      throw new Error("No API selected or configured.");
+    }
+
+    async function handleApiError(res, defaultPrefix) {
+      let errorMsg = `${defaultPrefix} HTTP ${res.status}`;
+      try {
+        const errBody = await res.json();
+        if (errBody.error && errBody.error.message) errorMsg = errBody.error.message;
+        else if (errBody.message) errorMsg = errBody.message;
+      } catch(e) {}
+      throw new Error(errorMsg);
     }
 
     async function callCustom(history) {
@@ -783,16 +814,21 @@ Rules:
       const headers = { 'Content-Type': 'application/json' };
       if (customKey) headers['Authorization'] = `Bearer ${customKey}`;
       
-      const res = await fetch(customUrl, {
+      let finalUrl = customUrl;
+      if (!finalUrl.endsWith('/v1/chat/completions')) {
+        finalUrl = finalUrl.replace(/\/+$/, '') + '/v1/chat/completions';
+      }
+
+      const res = await fetch(finalUrl, {
         method:'POST',
         headers: headers,
         body: JSON.stringify({ 
-          model: customModel || 'gpt-3.5-turbo', 
+          model: customModel || 'llama3', 
           messages: [{ role:'system', content:getSystemPrompt() }, ...cleanHistory],
           temperature: 0.7 
         })
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) await handleApiError(res, 'Custom API Error:');
       const d = await res.json();
       return d.choices[0].message.content;
     }
@@ -809,7 +845,7 @@ Rules:
           max_completion_tokens: 8192
         })
       });
-      if (!res.ok) throw new Error(`Groq HTTP ${res.status}`);
+      if (!res.ok) await handleApiError(res, 'Groq API Error:');
       const d = await res.json();
       return d.choices[0].message.content;
     }
@@ -830,7 +866,7 @@ Rules:
           temperature: 0.7 
         })
       });
-      if (!res.ok) throw new Error(`OpenRouter HTTP ${res.status}`);
+      if (!res.ok) await handleApiError(res, 'OpenRouter API Error:');
       const d = await res.json();
       return d.choices[0].message.content;
     }
@@ -849,7 +885,7 @@ Rules:
           generationConfig:{ maxOutputTokens:600, temperature:0.7 } 
         })
       });
-      if (!res.ok) throw new Error(`Google HTTP ${res.status}`);
+      if (!res.ok) await handleApiError(res, 'Google API Error:');
       const d = await res.json();
       return d.candidates[0].content.parts[0].text;
     }
