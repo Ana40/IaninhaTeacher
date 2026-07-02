@@ -2,7 +2,7 @@
     lucide.createIcons();
 
     const TOPICS = [
-      { icon:"briefcase", label:"Job Interviews", prompt:"Let's practice for a job interview in English. Ask me one common question and wait for my answer." },
+      { icon:"briefcase", label:"Job Interviews", prompt:"I am a Salesforce Developer. Let's practice for a job interview in English. Ask me a technical or behavioral interview question related to Salesforce development (Apex, LWC, triggers, best practices, etc.) and wait for my answer." },
       { icon:"plane", label:"Travel", prompt:"Let's practice travel English — airports, hotels, asking for directions. Create a scenario and start." },
       { icon:"coffee", label:"Daily Life", prompt:"Let's have a casual everyday conversation in English. Start naturally." },
       { icon:"mail", label:"Business Email", prompt:"Help me practice writing professional emails in English. Give me a situation to respond to." },
