@@ -429,10 +429,10 @@ Rules:
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
       
-      // Remove emojis and markdown formatting (*, _, ~, #) for cleaner TTS
+      // Remove emojis and markdown formatting (*, _, ~, #, aspas) for cleaner TTS
       let cleanText = rawText
         .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}]/gu, '')
-        .replace(/[*_~#]/g, '')
+        .replace(/[*_~#"']/g, '')
         .trim();
         
       if (!cleanText) return;
