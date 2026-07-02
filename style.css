@@ -49,7 +49,7 @@
 
     /* Setup Screen */
     #setup-screen {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      position: fixed; inset: 0; display: flex;
       padding: 24px; z-index: 50; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(16px);
       transition: opacity 0.4s; overflow-y: auto;
     }
@@ -293,14 +293,37 @@
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-    @media (max-width: 768px) {
-      .setup-card { padding: 30px 20px; }
+    @media (max-width: 1024px) {
+      .setup-card { padding: 30px 24px; }
+      .input-group { margin-bottom: 16px; }
+      .setup-header { margin-bottom: 24px; }
+      .setup-avatar { width: 60px; height: 60px; margin: 0 auto 12px; }
+      .setup-avatar i { width: 30px; height: 30px; }
+      .btn-primary { margin-top: 16px; padding: 14px; }
+
       header { padding: 12px 16px; }
       #topics-section { padding: 24px 16px; }
       #messages { padding: 16px; }
       .input-area { padding: 16px; }
       .msg-group { max-width: 90%; }
       #app-screen { border: none; }
+    }
+
+    @media (max-height: 850px) {
+      .setup-card { padding: 24px; }
+      .setup-header { margin-bottom: 20px; }
+      .setup-header h1 { font-size: 22px; }
+      .setup-header p { margin-top: 4px; font-size: 13px; }
+      .setup-avatar { width: 50px; height: 50px; margin-bottom: 8px; }
+      .setup-avatar i { width: 24px; height: 24px; }
+      .input-group { margin-bottom: 12px; }
+      .input-group label { margin-bottom: 4px; }
+      .setup-input { padding: 10px 14px 10px 36px; font-size: 14px; }
+      .btn-primary { padding: 12px; margin-top: 16px; font-size: 15px; }
+      .teacher-selector { margin-bottom: 16px; }
+      .teacher-box { padding: 10px; }
+      .teacher-avatar-preview { width: 50px; height: 50px; }
+      .author-credits { margin-top: 1rem; }
     }
 
     .teacher-group label { justify-content: center; font-size: 16px; margin-bottom: 15px; }
