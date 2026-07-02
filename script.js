@@ -453,19 +453,19 @@ Rules:
             !v.name.toLowerCase().includes('male'));
         }
       } else {
+        const maleKeywords = ['male', 'david', 'mark', 'george', 'andrew', 'daniel', 'arthur', 'ryan', 'Google UK English Male'];
         selectedVoice = systemVoices.find(v => v.lang.startsWith('en') && 
-          (v.name.toLowerCase().includes('male') || 
-           v.name.toLowerCase().includes('david') || 
-           v.name.toLowerCase().includes('mark') || 
-           v.name.toLowerCase().includes('george') || 
-           v.name.toLowerCase().includes('andrew') || 
-           v.name.includes('Google UK English Male')));
+           maleKeywords.some(kw => v.name.toLowerCase().includes(kw.toLowerCase())));
            
         if (!selectedVoice) {
+          // Generic fallback for Android/Tablets where voice names lack 'male'
           selectedVoice = systemVoices.find(v => v.lang.startsWith('en') && 
             !v.name.toLowerCase().includes('zira') && 
             !v.name.toLowerCase().includes('samantha') && 
             !v.name.toLowerCase().includes('female'));
+            
+          // Lower pitch to simulate male voice since the device gave us a generic (usually female) voice
+          utt.pitch = 0.6;
         }
       }
       
