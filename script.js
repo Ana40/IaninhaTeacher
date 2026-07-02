@@ -425,10 +425,19 @@ Rules:
       msgs.scrollTop = msgs.scrollHeight;
     }
 
-    async function speak(text) {
+    async function speak(rawText) {
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(text);
+      
+      // Remove emojis and markdown formatting (*, _, ~, #) for cleaner TTS
+      let cleanText = rawText
+        .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}]/gu, '')
+        .replace(/[*_~#]/g, '')
+        .trim();
+        
+      if (!cleanText) return;
+      
+      const utt = new SpeechSynthesisUtterance(cleanText);
       utt.lang = 'en-US';
       
       // Try to reload voices just in case it was missed
